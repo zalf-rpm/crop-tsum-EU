@@ -1,0 +1,13 @@
+name: soybean_0
+tsummaturity: 2235
+stages:
+- name: germination
+  tsum: 167
+  basetemp: 8
+- name: flowering
+  tsum: 1048
+  basetemp: 6
+- name: maturity
+  tsum: 1058
+  basetemp: 6
+frosttreashold: 5

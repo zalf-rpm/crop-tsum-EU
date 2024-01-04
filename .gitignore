@@ -19,3 +19,7 @@
 
 # Go workspace file
 go.work
+stu_eu_layer_grid.csv
+stu_eu_layer_ref.csv
+sowing_dates/0_0_sowing-dates.csv
+sowing_dates/GFDL-CM3_45_sowing-dates.csv
