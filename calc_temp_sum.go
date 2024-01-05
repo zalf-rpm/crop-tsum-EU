@@ -4,8 +4,10 @@ import (
 	"bufio"
 	"compress/gzip"
 	"flag"
+	"fmt"
 	"io"
 	"log"
+	"math"
 	"os"
 	"strconv"
 	"strings"
@@ -16,6 +18,8 @@ import (
 
 // goal: generate maps of TSum for each crop, for each climate scenario
 // to check if the required TSum can be reached for each crop, for each climate scenario
+// it is assumed that the crop is sown at the earliest possible date and harvested at the latest possible date
+// this is supposed to work for summer crops, but not for winter crops
 // read weather files from climate scenarios
 // calculate TSum for each crop, with a given start date and end date
 // calculate maps for risks of frost and rain in the harvest period
@@ -60,8 +64,9 @@ func main() {
 	startYear := flag.Int("start_year", 1980, "start year")
 	endYear := flag.Int("end_year", 2010, "end year")
 	pathToWeather := flag.String("weather", "weather", "path to weather files")
-
 	referenceFile := flag.String("reference", "stu_eu_layer_ref.csv", "reference file climate sowing date mapping")
+	gridToRefFile := flag.String("grid_to_ref", "stu_eu_layer_grid.csv", "grid to reference mapping file")
+	outputIdentifier := flag.String("output", "output", "output identifier")
 
 	flag.Parse()
 
@@ -83,7 +88,10 @@ func main() {
 	}
 
 	// read reference data from csv file
-	referenceToClim, climToReference := readClimateRefData(*referenceFile)
+	referenceToClim, climToReference, err := readClimateRefData(*referenceFile)
+	if err != nil {
+		log.Fatal(err)
+	}
 	numberRef := len(referenceToClim)
 
 	// read time range data from csv file
@@ -107,15 +115,17 @@ func main() {
 		}
 
 		// open weather file and calculate TSum for crop, for each reference
-		calcResult := doCalculationPerWeatherFile(&crop, timeRanges, refIds, *startYear, *endYear, weatherFileName)
-
+		calcResult, err := doCalculationPerWeatherFile(&crop, timeRanges, refIds, *startYear, *endYear, weatherFileName)
+		if err != nil {
+			log.Fatal(err)
+		}
 		// store calculation result
 		for _, result := range calcResult {
-			calculationResult[result.refId] = result
+			calculationResult[result.refId-1] = result
 		}
 	}
 	// write calculation result to csv file and ascii grid
-	err = writeCalculationResult(calculationResult, referenceToClim, *startYear, *endYear)
+	err = writeCalculationResult(calculationResult, referenceToClim, *gridToRefFile, *startYear, *endYear, *outputIdentifier)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -158,21 +168,26 @@ func generateCropFile(cropFileName string) error {
 }
 
 type CalculationResultRef struct {
-	refId     int
-	Tsum      float64
-	frostDays float64
+	refId            int
+	Tsum             []float64 // TSum for each year
+	frostDays        []float64 // number of frost days for each year
+	TsumReached      []bool    // TSum reached maturity for each year
+	TsumReachedCount int       // number of years TSum reached maturity
+	TsumAvg          float64   // average TSum for all years
+	FrostOccurrence  int       // frost occurrence (number of years with frost)
 }
 
-func doCalculationPerWeatherFile(crop *Crop, timeRanges []*TimeRange, refIds []int, startYear, endYear int, weatherFileName string) []*CalculationResultRef {
+func doCalculationPerWeatherFile(crop *Crop, timeRanges []*TimeRange, refIds []int, startYear, endYear int, weatherFileName string) ([]*CalculationResultRef, error) {
 
 	// calculation result array
 	calculationResult := make([]*CalculationResultRef, len(refIds))
 	refStages := make([]*refStage, len(refIds))
 	for i, refId := range refIds {
 		calculationResult[i] = &CalculationResultRef{
-			refId:     refId,
-			Tsum:      0,
-			frostDays: 0,
+			refId:       refId,
+			Tsum:        make([]float64, endYear-startYear+1),
+			frostDays:   make([]float64, endYear-startYear+1),
+			TsumReached: make([]bool, endYear-startYear+1),
 		}
 		refStages[i] = &refStage{
 			refId:    refId,
@@ -183,7 +198,7 @@ func doCalculationPerWeatherFile(crop *Crop, timeRanges []*TimeRange, refIds []i
 	// open weather file
 	weatherFile, err := os.Open(weatherFileName)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 	defer weatherFile.Close()
 	scanner := bufio.NewScanner(weatherFile)
@@ -191,6 +206,8 @@ func doCalculationPerWeatherFile(crop *Crop, timeRanges []*TimeRange, refIds []i
 	idxTavg := -1
 	idxTmin := -1
 	idxDate := -1
+	currentYear := -1
+	currentYearIdx := -1
 	for scanner.Scan() {
 		line := scanner.Text()
 		// parse header line and get index for tavg, tmin and date
@@ -216,29 +233,42 @@ func doCalculationPerWeatherFile(crop *Crop, timeRanges []*TimeRange, refIds []i
 		date := fields[idxDate]
 		year, err := strconv.Atoi(date[0:4])
 		if err != nil {
-			log.Fatal(err)
+			return nil, err
 		}
 		// check if year is in range
-		if year < startYear || year > endYear {
+		if year < startYear {
 			continue
+		}
+		if year > endYear {
+			break
+		}
+		// check if year has changed
+		if year != currentYear {
+			currentYear = year
+			currentYearIdx++
+			// reset stage index and TSum for each reference
+			for _, rs := range refStages {
+				rs.stageIdx = 0
+				rs.Tsum = 0
+			}
 		}
 		// get doy from date
 		// convert date to DOY
 		dateTime, err := time.Parse("2006-01-02", date)
 		if err != nil {
-			log.Fatal(err)
+			return nil, err
 		}
 		doy := dateTime.YearDay()
 
 		// parse avgerage temperature
 		tavg, err := strconv.ParseFloat(fields[idxTavg], 64)
 		if err != nil {
-			log.Fatal(err)
+			return nil, err
 		}
 		// parse minimum temperature
 		tmin, err := strconv.ParseFloat(fields[idxTmin], 64)
 		if err != nil {
-			log.Fatal(err)
+			return nil, err
 		}
 		// calculate TSum for each crop, for each reference
 		for idx, refId := range refIds {
@@ -252,15 +282,38 @@ func doCalculationPerWeatherFile(crop *Crop, timeRanges []*TimeRange, refIds []i
 			tsum := calculateTSum(refStages[idx], crop, tavg)
 			// calculate stage for crop
 			calcStage(refStages[idx], crop, tsum)
-			calculationResult[idx].Tsum += tsum
+			calculationResult[idx].Tsum[currentYearIdx] += tsum
 			// calculate frost days
 			if tmin < crop.FrostTreashold {
-				calculationResult[idx].frostDays++
+				calculationResult[idx].frostDays[currentYearIdx]++
 			}
-
 		}
 	}
-	return calculationResult
+	// for each reference
+	// tsum reached maturity
+	// avg tsum
+	// frost occurrence
+	for idx := range refIds {
+		for yearIdx := 0; yearIdx < endYear-startYear+1; yearIdx++ {
+			// tsum reached maturity
+			if calculationResult[idx].Tsum[yearIdx] >= crop.TsumMaturity {
+				calculationResult[idx].TsumReached[yearIdx] = true
+			}
+			// avg TSum
+			calculationResult[idx].TsumAvg += calculationResult[idx].Tsum[yearIdx]
+			// frost occurrence
+			if calculationResult[idx].frostDays[yearIdx] > 0 {
+				calculationResult[idx].FrostOccurrence++
+			}
+			// number of years TSum reached maturity
+			if calculationResult[idx].TsumReached[yearIdx] {
+				calculationResult[idx].TsumReachedCount++
+			}
+		}
+		// avg TSum
+		calculationResult[idx].TsumAvg /= float64(endYear - startYear + 1)
+	}
+	return calculationResult, nil
 }
 
 type refStage struct {
@@ -360,7 +413,7 @@ func readTimeRangeData(sowingDateFile, harvestDateFile string, sowingDateDefault
 }
 
 // read DOY from csv file
-func readDOY(filename string, startYear, endYear int, timeRanges []*TimeRange, isSow bool) {
+func readDOY(filename string, startYear, endYear int, timeRanges []*TimeRange, isSow bool) error {
 
 	// open csv file
 	var reader io.Reader
@@ -369,13 +422,13 @@ func readDOY(filename string, startYear, endYear int, timeRanges []*TimeRange, i
 		// open gzip file
 		gzipFile, err := os.Open(filename)
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
 		defer gzipFile.Close()
 
 		gzipReader, err := gzip.NewReader(gzipFile)
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
 		defer gzipReader.Close()
 		reader = gzipReader
@@ -383,7 +436,7 @@ func readDOY(filename string, startYear, endYear int, timeRanges []*TimeRange, i
 		// open csv file
 		csvFile, err := os.Open(filename)
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
 		defer csvFile.Close()
 		reader = csvFile
@@ -403,20 +456,20 @@ func readDOY(filename string, startYear, endYear int, timeRanges []*TimeRange, i
 		// parse refId
 		refId, err := strconv.Atoi(fields[0])
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
 		refIndex := refId - 1
 
 		// parse DOY
 		doy, err := strconv.Atoi(fields[1])
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
 		// get year
 		date := fields[2]
 		year, err := strconv.Atoi(date[0:4])
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
 		// check if year is in range
 		if year < startYear || year > endYear {
@@ -431,14 +484,15 @@ func readDOY(filename string, startYear, endYear int, timeRanges []*TimeRange, i
 			timeRanges[yearIndex].EndDOY[refIndex] = doy
 		}
 	}
+	return nil
 }
 
 // climate reference data
-func readClimateRefData(filename string) (referenceToClim []string, climToReference map[string][]int) {
+func readClimateRefData(filename string) (referenceToClim []string, climToReference map[string][]int, err error) {
 
 	file, err := os.Open(filename)
 	if err != nil {
-		log.Fatal(err)
+		return nil, nil, err
 	}
 	defer file.Close()
 	scanner := bufio.NewScanner(file)
@@ -457,7 +511,7 @@ func readClimateRefData(filename string) (referenceToClim []string, climToRefere
 		// parse refId
 		refId, err := strconv.Atoi(fields[0])
 		if err != nil {
-			log.Fatal(err)
+			return nil, nil, err
 		}
 		// climate reference
 		clim := fields[1]
@@ -465,11 +519,246 @@ func readClimateRefData(filename string) (referenceToClim []string, climToRefere
 		// climate reference to refId
 		climToReference[clim] = append(climToReference[clim], refId)
 	}
-	return referenceToClim, climToReference
+	return referenceToClim, climToReference, nil
 }
 
 // write calculation result to csv file and ascii grid
-func writeCalculationResult(calculationResult []*CalculationResultRef, referenceToClim []string, startYear, endYear int) error {
-	// TODO
+func writeCalculationResult(calculationResult []*CalculationResultRef, referenceToClim []string, gridToRefFile string, startYear, endYear int, outputIdentifier string) error {
+	// write calculation result to csv file
+	csvFileName := fmt.Sprintf("cal_res_ref_%s_%d-%d.csv", outputIdentifier, startYear, endYear)
+	csvFile, err := createGzFileWriter(csvFileName)
+	if err != nil {
+		return err
+	}
+	defer csvFile.Close()
+	// write header line
+	_, err = csvFile.Write("refId,climate,year,Tsum,frost_days,Tsum_reached\n")
+	if err != nil {
+		return err
+	}
+
+	for _, result := range calculationResult {
+		for yearIdx := 0; yearIdx < endYear-startYear+1; yearIdx++ {
+			_, err = csvFile.Write(fmt.Sprintf("%d,%s,%d,%f,%f,%t\n", result.refId, referenceToClim[result.refId-1], startYear+yearIdx, result.Tsum[yearIdx], result.frostDays[yearIdx], result.TsumReached[yearIdx]))
+			if err != nil {
+				return err
+			}
+		}
+	}
+	// load grid to reference mapping
+	rowExt, colExt, gridToRef, err := GetGridLookup(gridToRefFile)
+	if err != nil {
+		return err
+	}
+
+	// write calculation result to ascii grids
+	// TsumAvg
+	ascFileName := fmt.Sprintf("cal_res_ref_%s_%d-%d_TsumAvg.asc", outputIdentifier, startYear, endYear)
+	foutTsum, err := createGridFile(ascFileName, rowExt, colExt)
+	if err != nil {
+		return err
+	}
+	defer foutTsum.Close()
+	writeRows(foutTsum, rowExt, colExt, calculationResult, TSumAvg, gridToRef)
+	// TsumReached
+	ascFileName = fmt.Sprintf("cal_res_ref_%s_%d-%d_TsumReached.asc", outputIdentifier, startYear, endYear)
+	foutTsumR, err := createGridFile(ascFileName, rowExt, colExt)
+	if err != nil {
+		return err
+	}
+	defer foutTsumR.Close()
+	writeRows(foutTsumR, rowExt, colExt, calculationResult, TSumReached, gridToRef)
+
 	return nil
+}
+
+func createGridFile(name string, nCol, nRow int) (*Fout, error) {
+	cornerX := 0.0
+	cornery := 0.0
+	novalue := -9999
+	cellsize := 1.0
+
+	fout, err := createGzFileWriter(name)
+	if err != nil {
+		return nil, err
+	}
+
+	fout.Write(fmt.Sprintf("ncols %d\n", nCol))
+	fout.Write(fmt.Sprintf("nrows %d\n", nRow))
+	fout.Write(fmt.Sprintf("xllcorner     %f\n", cornerX))
+	fout.Write(fmt.Sprintf("yllcorner     %f\n", cornery))
+	fout.Write(fmt.Sprintf("cellsize      %f\n", cellsize))
+	fout.Write(fmt.Sprintf("NODATA_value  %d\n", novalue))
+
+	return fout, nil
+}
+
+// emum for output type
+type outputType int
+
+const (
+	// output type for TSumAvg
+	TSumAvg outputType = iota
+	// output type for TSumReached
+	TSumReached
+	// output type for FrostOccurrence
+	FrostOccurrence
+)
+
+func writeRows(fout *Fout, extRow, extCol int, calcResults []*CalculationResultRef, outType outputType, gridSourceLookup [][]int) error {
+	size := len(calcResults)
+	for row := 0; row < extRow; row++ {
+
+		for col := 0; col < extCol; col++ {
+			refID := gridSourceLookup[row][col]
+			var err error
+			if refID >= 0 && refID < size {
+				if outType == TSumAvg {
+					_, err = fout.Write(strconv.Itoa(int(math.Round(calcResults[refID-1].TsumAvg))))
+				} else if outType == TSumReached {
+					_, err = fout.Write(strconv.Itoa(calcResults[refID-1].TsumReachedCount))
+				} else if outType == FrostOccurrence {
+					_, err = fout.Write(strconv.Itoa(calcResults[refID-1].FrostOccurrence))
+				} else {
+					_, err = fout.Write("-9999")
+				}
+				if err != nil {
+					return err
+				}
+				_, err = fout.Write(" ")
+			} else {
+				_, err = fout.Write("-9999 ")
+			}
+			if err != nil {
+				return err
+			}
+		}
+		_, err := fout.Write("\n")
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// Fout combined file writer
+type Fout struct {
+	file    *os.File
+	gfile   *gzip.Writer
+	fwriter *bufio.Writer
+}
+
+// create gz file writer
+func createGzFileWriter(name string) (*Fout, error) {
+	// create folder if not exists
+	if _, err := os.Stat(name); os.IsNotExist(err) {
+		// folder does not exist
+		err = os.Mkdir(name, 0755)
+		if err != nil {
+			return nil, err
+		}
+	}
+	file, err := os.OpenFile(name+".gz", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
+	if err != nil {
+		return nil, err
+	}
+
+	gfile := gzip.NewWriter(file)
+	fwriter := bufio.NewWriter(gfile)
+	return &Fout{file, gfile, fwriter}, nil
+}
+
+// Write string to zip file
+func (f Fout) Write(s string) (count int, err error) {
+	count, err = f.fwriter.WriteString(s)
+	return count, err
+}
+
+// Close file writer
+func (f Fout) Close() error {
+	err := f.fwriter.Flush()
+	if err != nil {
+		return err
+	}
+	// Close the gzip first.
+	err = f.gfile.Close()
+	if err != nil {
+		return err
+	}
+	err = f.file.Close()
+	return err
+}
+
+// Get GridLookup
+func GetGridLookup(gridsource string) (rowExt int, colExt int, lookupGrid [][]int, err error) {
+	type GridCoord struct {
+		row int
+		col int
+	}
+	colExt = 0
+	rowExt = 0
+	lookup := make(map[int64][]GridCoord)
+
+	sourcefile, err := os.Open(gridsource)
+	if err != nil {
+		return 0, 0, nil, err
+	}
+	defer sourcefile.Close()
+	firstLine := true
+	colID := -1
+	rowID := -1
+	refID := -1
+	scanner := bufio.NewScanner(sourcefile)
+	for scanner.Scan() {
+		line := scanner.Text()
+		tokens := strings.Split(line, ",")
+		if firstLine {
+			firstLine = false
+			for index, token := range tokens {
+				if token == "Column_" {
+					colID = index
+				}
+				if token == "Row" {
+					rowID = index
+				}
+				if token == "soil_ref" {
+					refID = index
+				}
+			}
+		} else {
+			col, _ := strconv.ParseInt(tokens[colID], 10, 64)
+			row, _ := strconv.ParseInt(tokens[rowID], 10, 64)
+			ref, _ := strconv.ParseInt(tokens[refID], 10, 64)
+			if int(col) > colExt {
+				colExt = int(col)
+			}
+			if int(row) > rowExt {
+				rowExt = int(row)
+			}
+			if _, ok := lookup[ref]; !ok {
+				lookup[ref] = make([]GridCoord, 0, 1)
+			}
+			lookup[ref] = append(lookup[ref], GridCoord{int(row), int(col)})
+		}
+	}
+	lookupGrid = newGrid(rowExt, colExt, -1)
+	for ref, coord := range lookup {
+		for _, rowCol := range coord {
+			lookupGrid[rowCol.row-1][rowCol.col-1] = int(ref)
+		}
+	}
+
+	return rowExt, colExt, lookupGrid, nil
+}
+
+// create new grid with default values
+func newGrid(extRow, extCol, defaultVal int) [][]int {
+	grid := make([][]int, extRow)
+	for r := 0; r < extRow; r++ {
+		grid[r] = make([]int, extCol)
+		for c := 0; c < extCol; c++ {
+			grid[r][c] = defaultVal
+		}
+	}
+	return grid
 }
