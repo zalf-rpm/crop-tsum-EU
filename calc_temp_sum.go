@@ -9,6 +9,7 @@ import (
 	"log"
 	"math"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -66,7 +67,7 @@ func main() {
 	pathToWeather := flag.String("weather", "weather", "path to weather files")
 	referenceFile := flag.String("reference", "stu_eu_layer_ref.csv", "reference file climate sowing date mapping")
 	gridToRefFile := flag.String("grid_to_ref", "stu_eu_layer_grid.csv", "grid to reference mapping file")
-	outputIdentifier := flag.String("output", "output", "output identifier")
+	outputFolder := flag.String("output", "./output", "output folder")
 
 	flag.Parse()
 
@@ -120,7 +121,7 @@ func main() {
 		}
 	}
 	// write calculation result to csv file and ascii grid
-	err = writeCalculationResult(calculationResult, referenceToGridCode, *gridToRefFile, *startYear, *endYear, *outputIdentifier)
+	err = writeCalculationResult(calculationResult, referenceToGridCode, *gridToRefFile, *startYear, *endYear, *outputFolder)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -524,9 +525,9 @@ func readClimateRefData(filename string) (referenceToWeatherGridCode []string, G
 }
 
 // write calculation result to csv file and ascii grid
-func writeCalculationResult(calculationResult []*CalculationResultRef, referenceToClim []string, gridToRefFile string, startYear, endYear int, outputIdentifier string) error {
+func writeCalculationResult(calculationResult []*CalculationResultRef, referenceToClim []string, gridToRefFile string, startYear, endYear int, outpuFolder string) error {
 	// write calculation result to csv file
-	csvFileName := fmt.Sprintf("cal_res_ref_%s_%d-%d.csv", outputIdentifier, startYear, endYear)
+	csvFileName := filepath.Join(outpuFolder, fmt.Sprintf("cal_res_ref_%d-%d.csv", startYear, endYear))
 	csvFile, err := createGzFileWriter(csvFileName)
 	if err != nil {
 		return err
@@ -552,24 +553,37 @@ func writeCalculationResult(calculationResult []*CalculationResultRef, reference
 		return err
 	}
 
+	// --------------------
+	writeGrid := func(ascFileNameTempl string, outType outputType) error {
+		ascFileName := filepath.Join(outpuFolder, fmt.Sprintf(ascFileNameTempl, startYear, endYear))
+		fout, err := createGridFile(ascFileName, rowExt, colExt)
+		if err != nil {
+			return err
+		}
+		defer fout.Close()
+		err = writeRows(fout, rowExt, colExt, calculationResult, outType, gridToRef)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
 	// write calculation result to ascii grids
 	// TsumAvg
-	ascFileName := fmt.Sprintf("cal_res_ref_%s_%d-%d_TsumAvg.asc", outputIdentifier, startYear, endYear)
-	foutTsum, err := createGridFile(ascFileName, rowExt, colExt)
+	err = writeGrid("TsumAvg_%d-%d.asc", TSumAvg)
 	if err != nil {
 		return err
 	}
-	defer foutTsum.Close()
-	writeRows(foutTsum, rowExt, colExt, calculationResult, TSumAvg, gridToRef)
 	// TsumReached
-	ascFileName = fmt.Sprintf("cal_res_ref_%s_%d-%d_TsumReached.asc", outputIdentifier, startYear, endYear)
-	foutTsumR, err := createGridFile(ascFileName, rowExt, colExt)
+	err = writeGrid("TsumReached_%d-%d.asc", TSumReached)
 	if err != nil {
 		return err
 	}
-	defer foutTsumR.Close()
-	writeRows(foutTsumR, rowExt, colExt, calculationResult, TSumReached, gridToRef)
-
+	// FrostOccurrence
+	err = writeGrid("FrostOccurrence_%d-%d.asc", FrostOccurrence)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -651,10 +665,15 @@ type Fout struct {
 
 // create gz file writer
 func createGzFileWriter(name string) (*Fout, error) {
+	// extract folder name
+	folder := name[0:strings.LastIndex(name, "/")]
+	if folder == "" {
+		folder = "."
+	}
 	// create folder if not exists
-	if _, err := os.Stat(name); os.IsNotExist(err) {
+	if _, err := os.Stat(folder); os.IsNotExist(err) {
 		// folder does not exist
-		err = os.Mkdir(name, 0755)
+		err = os.Mkdir(folder, 0755)
 		if err != nil {
 			return nil, err
 		}
