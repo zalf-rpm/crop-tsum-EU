@@ -88,11 +88,11 @@ func main() {
 	}
 
 	// read reference data from csv file
-	referenceToClim, climToReference, err := readClimateRefData(*referenceFile)
+	referenceToGridCode, gridCodeToReferences, err := readClimateRefData(*referenceFile)
 	if err != nil {
 		log.Fatal(err)
 	}
-	numberRef := len(referenceToClim)
+	numberRef := len(referenceToGridCode)
 
 	// read time range data from csv file
 	timeRanges := readTimeRangeData(*sowingDateFile, *harvestDateFile, *sowingDefaultDOY, *harvestDefaultDOY, numberRef, *startYear, *endYear)
@@ -100,18 +100,13 @@ func main() {
 	// calculation result array
 	calculationResult := make([]*CalculationResultRef, numberRef)
 
-	for climateId, refIds := range climToReference {
-		// get climate scenario
-		// get weather data
-		weatherFileName := *pathToWeather + "/" + climateId + ".csv"
+	for gridCode, refIds := range gridCodeToReferences {
+		// add weather grid code to path
+		weatherFileName := fmt.Sprintf(*pathToWeather, gridCode)
 		//check if file exists
 		if _, err := os.Stat(weatherFileName); os.IsNotExist(err) {
 			// file does not exist
-			weatherFileName = *pathToWeather + "/" + climateId + ".csv.gz"
-			if _, err := os.Stat(weatherFileName); os.IsNotExist(err) {
-				// file does not exist
-				log.Fatal(err)
-			}
+			log.Fatal(err)
 		}
 
 		// open weather file and calculate TSum for crop, for each reference
@@ -125,7 +120,7 @@ func main() {
 		}
 	}
 	// write calculation result to csv file and ascii grid
-	err = writeCalculationResult(calculationResult, referenceToClim, *gridToRefFile, *startYear, *endYear, *outputIdentifier)
+	err = writeCalculationResult(calculationResult, referenceToGridCode, *gridToRefFile, *startYear, *endYear, *outputIdentifier)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -202,7 +197,7 @@ func doCalculationPerWeatherFile(crop *Crop, timeRanges []*TimeRange, refIds []i
 	}
 	defer weatherFile.Close()
 	scanner := bufio.NewScanner(weatherFile)
-	headlines := 1
+	headlines := 2
 	idxTavg := -1
 	idxTmin := -1
 	idxDate := -1
@@ -211,7 +206,7 @@ func doCalculationPerWeatherFile(crop *Crop, timeRanges []*TimeRange, refIds []i
 	for scanner.Scan() {
 		line := scanner.Text()
 		// parse header line and get index for tavg, tmin and date
-		if headlines == 1 {
+		if headlines > 0 {
 			fields := strings.Split(line, ",")
 			for idx, field := range fields {
 				if field == "tavg" {
@@ -394,8 +389,12 @@ func readTimeRangeData(sowingDateFile, harvestDateFile string, sowingDateDefault
 	// set default time range
 	for i := 0; i < numberYears; i++ {
 		timeRanges[i] = &TimeRange{
-			StartDOY: make([]int, sowingDateDefault, size),
-			EndDOY:   make([]int, harvestDefault, size),
+			StartDOY: make([]int, size),
+			EndDOY:   make([]int, size),
+		}
+		for j := 0; j < size; j++ {
+			timeRanges[i].StartDOY[j] = sowingDateDefault
+			timeRanges[i].EndDOY[j] = harvestDefault
 		}
 	}
 
@@ -488,7 +487,7 @@ func readDOY(filename string, startYear, endYear int, timeRanges []*TimeRange, i
 }
 
 // climate reference data
-func readClimateRefData(filename string) (referenceToClim []string, climToReference map[string][]int, err error) {
+func readClimateRefData(filename string) (referenceToWeatherGridCode []string, GridCodeReferences map[string][]int, err error) {
 
 	file, err := os.Open(filename)
 	if err != nil {
@@ -497,13 +496,15 @@ func readClimateRefData(filename string) (referenceToClim []string, climToRefere
 	defer file.Close()
 	scanner := bufio.NewScanner(file)
 
-	referenceToClim = make([]string, 0, defaultRefSize)
-	climToReference = make(map[string][]int)
+	referenceToWeatherGridCode = make([]string, 0, defaultRefSize)
+	GridCodeReferences = make(map[string][]int)
 
+	skipHeader := true
 	for scanner.Scan() {
 		line := scanner.Text()
 		// skip header line
-		if strings.HasPrefix(line, "refId") {
+		if skipHeader {
+			skipHeader = false
 			continue
 		}
 		// split line
@@ -514,12 +515,12 @@ func readClimateRefData(filename string) (referenceToClim []string, climToRefere
 			return nil, nil, err
 		}
 		// climate reference
-		clim := fields[1]
-		referenceToClim[refId-1] = clim
+		weatherGridCode := fields[1]
+		referenceToWeatherGridCode = append(referenceToWeatherGridCode, weatherGridCode)
 		// climate reference to refId
-		climToReference[clim] = append(climToReference[clim], refId)
+		GridCodeReferences[weatherGridCode] = append(GridCodeReferences[weatherGridCode], refId)
 	}
-	return referenceToClim, climToReference, nil
+	return referenceToWeatherGridCode, GridCodeReferences, nil
 }
 
 // write calculation result to csv file and ascii grid
