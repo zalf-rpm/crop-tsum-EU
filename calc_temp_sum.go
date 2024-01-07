@@ -280,7 +280,7 @@ func doCalculationPerWeatherFile(crop *Crop, timeRanges []*TimeRange, refIds []i
 			calcStage(refStages[idx], crop, tsum)
 			calculationResult[idx].Tsum[currentYearIdx] += tsum
 			// calculate frost days
-			if tmin < crop.FrostTreashold {
+			if tmin < crop.FrostTreashold && calculationResult[idx].Tsum[currentYearIdx] > 0 {
 				calculationResult[idx].frostDays[currentYearIdx]++
 			}
 		}
@@ -318,19 +318,19 @@ type refStage struct {
 	Tsum     float64
 }
 
-func calculateTSum(rs *refStage, c *Crop, tavg float64) (tsum float64) {
+func calculateTSum(rs *refStage, c *Crop, tavg float64) float64 {
 	// calculate temperature sum for crop
 	temp := tavg - c.Stages[rs.stageIdx].BaseTemp
 	if temp < 0 {
 		temp = 0
 	}
-	return tsum
+	return temp
 }
 
 func calcStage(rs *refStage, c *Crop, tsumDay float64) {
 	rs.Tsum += tsumDay
 	// calculate stage for crop
-	if rs.stageIdx >= len(c.Stages) {
+	if rs.stageIdx+1 == len(c.Stages) {
 		return
 	}
 	if rs.Tsum >= c.Stages[rs.stageIdx].Tsum {
