@@ -280,7 +280,9 @@ func doCalculationPerWeatherFile(crop *Crop, timeRanges []*TimeRange, refIds []i
 			calcStage(refStages[idx], crop, tsum)
 			calculationResult[idx].Tsum[currentYearIdx] += tsum
 			// calculate frost days
-			if tmin < crop.FrostTreashold && calculationResult[idx].Tsum[currentYearIdx] > 0 {
+			if tmin < crop.FrostTreashold &&
+				calculationResult[idx].Tsum[currentYearIdx] > 0 &&
+				calculationResult[idx].Tsum[currentYearIdx] < crop.TsumMaturity {
 				calculationResult[idx].frostDays[currentYearIdx]++
 			}
 		}
@@ -666,7 +668,8 @@ type Fout struct {
 // create gz file writer
 func createGzFileWriter(name string) (*Fout, error) {
 	// extract folder name
-	folder := name[0:strings.LastIndex(name, "/")]
+	filepath.Dir(name)
+	folder := filepath.Dir(name)
 	if folder == "" {
 		folder = "."
 	}
