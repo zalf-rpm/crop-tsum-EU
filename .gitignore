@@ -24,3 +24,13 @@ stu_eu_layer_ref.csv
 sowing_dates/0_0_sowing-dates.csv
 sowing_dates/GFDL-CM3_45_sowing-dates.csv
 historical/
+2_GFDL-CM3_45/
+2_GFDL-CM3_85/
+2_GISS-E2-R_45/
+2_GISS-E2-R_85/
+2_HadGEM2-ES_45/
+2_HadGEM2-ES_85/
+2_MIROC5_45/
+2_MIROC5_85/
+2_MPI-ESM-MR_45/
+2_MPI-ESM-MR_85/
