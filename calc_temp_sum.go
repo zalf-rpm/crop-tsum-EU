@@ -558,7 +558,7 @@ func writeCalculationResult(calculationResult []*CalculationResultRef, reference
 	// --------------------
 	writeGrid := func(ascFileNameTempl string, outType outputType) error {
 		ascFileName := filepath.Join(outpuFolder, fmt.Sprintf(ascFileNameTempl, startYear, endYear))
-		fout, err := createGridFile(ascFileName, rowExt, colExt)
+		fout, err := createGridFile(ascFileName, colExt, rowExt)
 		if err != nil {
 			return err
 		}
