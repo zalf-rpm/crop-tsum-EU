@@ -168,9 +168,11 @@ type CalculationResultRef struct {
 	Tsum             []float64 // TSum for each year
 	frostDays        []float64 // number of frost days for each year
 	TsumReached      []bool    // TSum reached maturity for each year
+	WetHarvestYears  []bool    // years with wet harvest
 	TsumReachedCount int       // number of years TSum reached maturity
 	TsumAvg          float64   // average TSum for all years
 	FrostOccurrence  int       // frost occurrence (number of years with frost)
+	WetHarvest       int       // number of years with wet harvest
 }
 
 func doCalculationPerWeatherFile(crop *Crop, timeRanges []*TimeRange, refIds []int, startYear, endYear int, weatherFileName string) ([]*CalculationResultRef, error) {
@@ -178,18 +180,21 @@ func doCalculationPerWeatherFile(crop *Crop, timeRanges []*TimeRange, refIds []i
 	// calculation result array
 	calculationResult := make([]*CalculationResultRef, len(refIds))
 	refStages := make([]*refStage, len(refIds))
+	harvestRain := make([]*harvestRainDays, len(refIds))
 	for i, refId := range refIds {
 		calculationResult[i] = &CalculationResultRef{
-			refId:       refId,
-			Tsum:        make([]float64, endYear-startYear+1),
-			frostDays:   make([]float64, endYear-startYear+1),
-			TsumReached: make([]bool, endYear-startYear+1),
+			refId:           refId,
+			Tsum:            make([]float64, endYear-startYear+1),
+			frostDays:       make([]float64, endYear-startYear+1),
+			TsumReached:     make([]bool, endYear-startYear+1),
+			WetHarvestYears: make([]bool, endYear-startYear+1),
 		}
 		refStages[i] = &refStage{
 			refId:    refId,
 			stageIdx: 0,
 			Tsum:     0,
 		}
+		harvestRain[i] = newHarvestRainDays(refId)
 	}
 	// open weather file
 	weatherFile, err := os.Open(weatherFileName)
@@ -202,6 +207,7 @@ func doCalculationPerWeatherFile(crop *Crop, timeRanges []*TimeRange, refIds []i
 	idxTavg := -1
 	idxTmin := -1
 	idxDate := -1
+	idxPrecip := -1
 	currentYear := -1
 	currentYearIdx := -1
 	for scanner.Scan() {
@@ -218,6 +224,9 @@ func doCalculationPerWeatherFile(crop *Crop, timeRanges []*TimeRange, refIds []i
 				}
 				if field == "iso-date" || field == "date" {
 					idxDate = idx
+				}
+				if field == "precip" {
+					idxPrecip = idx
 				}
 			}
 			headlines--
@@ -247,6 +256,11 @@ func doCalculationPerWeatherFile(crop *Crop, timeRanges []*TimeRange, refIds []i
 				rs.stageIdx = 0
 				rs.Tsum = 0
 			}
+			// reset harvest date for each reference
+			for _, hr := range harvestRain {
+				hr.harvestDoy = -1
+				hr.numWetHarvest = 0
+			}
 		}
 		// get doy from date
 		// convert date to DOY
@@ -266,8 +280,19 @@ func doCalculationPerWeatherFile(crop *Crop, timeRanges []*TimeRange, refIds []i
 		if err != nil {
 			return nil, err
 		}
+		precip, err := strconv.ParseFloat(fields[idxPrecip], 64)
+		if err != nil {
+			return nil, err
+		}
 		// calculate TSum for each crop, for each reference
 		for idx, refId := range refIds {
+
+			// count wet harvest days before doy check if crop is in season
+			// harvest may be after end of season
+			calcHarRain := harvestRain[idx].countWetHarvestDays(doy, precip)
+			if calcHarRain && harvestRain[idx].numWetHarvest > 0 {
+				calculationResult[idx].WetHarvestYears[currentYearIdx] = true
+			}
 
 			// check if date is in vegetation period / time range
 			if doy < timeRanges[year-startYear].StartDOY[refId-1] || doy > timeRanges[year-startYear].EndDOY[refId-1] {
@@ -279,6 +304,10 @@ func doCalculationPerWeatherFile(crop *Crop, timeRanges []*TimeRange, refIds []i
 			// calculate stage for crop
 			calcStage(refStages[idx], crop, tsum)
 			calculationResult[idx].Tsum[currentYearIdx] += tsum
+			// set harvest date
+			if harvestRain[idx].harvestDoy <= 0 && calculationResult[idx].Tsum[currentYearIdx] >= crop.TsumMaturity {
+				harvestRain[idx].harvestDoy = doy
+			}
 			// calculate frost days
 			if tmin < crop.FrostTreashold &&
 				calculationResult[idx].Tsum[currentYearIdx] > 0 &&
@@ -306,6 +335,10 @@ func doCalculationPerWeatherFile(crop *Crop, timeRanges []*TimeRange, refIds []i
 			// number of years TSum reached maturity
 			if calculationResult[idx].TsumReached[yearIdx] {
 				calculationResult[idx].TsumReachedCount++
+			}
+			// number of years with wet harvest
+			if calculationResult[idx].WetHarvestYears[yearIdx] {
+				calculationResult[idx].WetHarvest++
 			}
 		}
 		// avg TSum
@@ -339,6 +372,47 @@ func calcStage(rs *refStage, c *Crop, tsumDay float64) {
 		rs.stageIdx++
 		rs.Tsum = 0
 	}
+}
+
+type harvestRainDays struct {
+	refId          int
+	harvestDoy     int
+	precipPrevDays dataLastDays
+	numWetHarvest  int
+}
+
+func newHarvestRainDays(refId int) *harvestRainDays {
+	return &harvestRainDays{
+		refId:          refId,
+		harvestDoy:     -1,
+		precipPrevDays: newDataLastDays(15),
+		numWetHarvest:  0,
+	}
+}
+
+func (hw *harvestRainDays) countWetHarvestDays(doy int, precip float64) (calculated bool) {
+
+	calculated = false
+	hw.precipPrevDays.addDay(precip)
+	// has harvest date been reached and this doy is harvest + offs
+	if hw.harvestDoy > 0 && doy == hw.harvestDoy+10 {
+		wetDayCounter := 0
+		twoDryDaysInRowDry := false
+		rainData := hw.precipPrevDays.getData() // get last 15 days
+		for i, x := range rainData {
+			if i > 4 && x > 0 {
+				wetDayCounter++
+			}
+			if i > 4 && x == 0 && rainData[i-1] == 0 {
+				twoDryDaysInRowDry = true
+			}
+		}
+		if wetDayCounter >= 5 && !twoDryDaysInRowDry {
+			hw.numWetHarvest++
+		}
+		calculated = true
+	}
+	return calculated
 }
 
 type TimeRange struct {
@@ -536,14 +610,14 @@ func writeCalculationResult(calculationResult []*CalculationResultRef, reference
 	}
 	defer csvFile.Close()
 	// write header line
-	_, err = csvFile.Write("refId,climate,year,Tsum,frost_days,Tsum_reached\n")
+	_, err = csvFile.Write("refId,climate,year,Tsum,frost_days,Tsum_reached,Wet_Harvest\n")
 	if err != nil {
 		return err
 	}
 
 	for _, result := range calculationResult {
 		for yearIdx := 0; yearIdx < endYear-startYear+1; yearIdx++ {
-			_, err = csvFile.Write(fmt.Sprintf("%d,%s,%d,%f,%f,%t\n", result.refId, referenceToClim[result.refId-1], startYear+yearIdx, result.Tsum[yearIdx], result.frostDays[yearIdx], result.TsumReached[yearIdx]))
+			_, err = csvFile.Write(fmt.Sprintf("%d,%s,%d,%f,%f,%t,%t\n", result.refId, referenceToClim[result.refId-1], startYear+yearIdx, result.Tsum[yearIdx], result.frostDays[yearIdx], result.TsumReached[yearIdx], result.WetHarvestYears[yearIdx]))
 			if err != nil {
 				return err
 			}
@@ -586,6 +660,11 @@ func writeCalculationResult(calculationResult []*CalculationResultRef, reference
 	if err != nil {
 		return err
 	}
+	// WetHarvest
+	err = writeGrid("WetHarvest_%d-%d.asc", WetHarvest)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -620,6 +699,8 @@ const (
 	TSumReached
 	// output type for FrostOccurrence
 	FrostOccurrence
+	// output type for WetHarvest
+	WetHarvest
 )
 
 func writeRows(fout *Fout, extRow, extCol int, calcResults []*CalculationResultRef, outType outputType, gridSourceLookup [][]int) error {
@@ -636,6 +717,8 @@ func writeRows(fout *Fout, extRow, extCol int, calcResults []*CalculationResultR
 					_, err = fout.Write(strconv.Itoa(calcResults[refID-1].TsumReachedCount))
 				} else if outType == FrostOccurrence {
 					_, err = fout.Write(strconv.Itoa(calcResults[refID-1].FrostOccurrence))
+				} else if outType == WetHarvest {
+					_, err = fout.Write(strconv.Itoa(calcResults[refID-1].WetHarvest))
 				} else {
 					_, err = fout.Write("-9999")
 				}
