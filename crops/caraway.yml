@@ -1,0 +1,7 @@
+name: caraway
+tsummaturity: 3005
+stages:
+- name: overall
+  tsum: 3005
+  basetemp: 5.0
+frosttreashold: 3

@@ -1,0 +1,7 @@
+name: buckwheat
+tsummaturity: 1466
+stages:
+- name: overall
+  tsum: 1466
+  basetemp: 1.25
+frosttreashold: 3

@@ -1,0 +1,7 @@
+name: l_albus
+tsummaturity: 1993
+stages:
+- name: overall
+  tsum: 1993
+  basetemp: 4.5
+frosttreashold: 3

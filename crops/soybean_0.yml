@@ -10,4 +10,4 @@ stages:
 - name: maturity
   tsum: 1058
   basetemp: 6
-frosttreashold: 5
+frosttreashold: 3

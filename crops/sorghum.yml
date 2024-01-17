@@ -1,0 +1,7 @@
+name: sorghum
+tsummaturity: 2006
+stages:
+- name: overall
+  tsum: 2006
+  basetemp: 8.4
+frosttreashold: 3

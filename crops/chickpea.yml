@@ -1,0 +1,7 @@
+name: chickpea
+tsummaturity: 1120
+stages:
+- name: overall
+  tsum: 1120
+  basetemp: 12
+frosttreashold: 3

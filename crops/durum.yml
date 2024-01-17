@@ -1,0 +1,7 @@
+name: durum
+tsummaturity: 1904
+stages:
+- name: overall
+  tsum: 1904
+  basetemp: 0
+frosttreashold: 0

@@ -44,7 +44,6 @@ import (
 // time period:
 // - 1980-2010
 // - 2040-2070
-// - 2070-2100
 // output:
 // - maps of TSum for each crop, for each climate scenario, for each time period( average of 30 years)
 // - maps of risks for each crop, for each climate scenario:

@@ -1,0 +1,7 @@
+name: soybean_1
+tsummaturity: 853
+stages:
+- name: overall
+  tsum: 853
+  basetemp: 6.5
+frosttreashold: 3

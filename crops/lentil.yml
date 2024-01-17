@@ -1,0 +1,7 @@
+name: lentil
+tsummaturity: 1073
+stages:
+- name: overall
+  tsum: 1073
+  basetemp: 6.5
+frosttreashold: 3
