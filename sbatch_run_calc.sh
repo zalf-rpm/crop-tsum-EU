@@ -14,7 +14,7 @@ CROP=$3 #crop
 # remove ext from crop file
 CROPOUT=${CROP%.*}
 
-PROGRAM=./${PROGRAM}/crop-tsum-EU
+PROGRAM=./crop-tsum-EU/crop-tsum-EU
 mkdir -p $CROPOUT
 
 ${PROGRAM} \
