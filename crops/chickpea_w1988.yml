@@ -1,0 +1,13 @@
+name: 'chickpea(H.D.J. van Heemst Wageningen 1988)'
+tsummaturity: 1290
+stages:
+- name: emergence
+  tsum: 50
+  basetemp: 10
+- name: anthesis
+  tsum: 340
+  basetemp: 7
+- name: maturity
+  tsum: 940
+  basetemp: 7
+frosttreashold: 3
