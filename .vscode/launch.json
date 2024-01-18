@@ -5,24 +5,60 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Launch Package",
+            "name": "Python: img gen",
+            "type": "python",
+            "request": "launch",
+            "program": "gen_img/create_image_from_ascii.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+                "source=crops/combined",
+                "out=img/combined" 
+            ]
+
+        },
+        {
+            "name": "Launch historical",
             "type": "go",
             "request": "launch",
             "mode": "auto",
-            "program": "calc_temp_sum.go",
+            "program": "crop-tsum-EU/calc_temp_sum.go",
             "args": [
-                "-crop", "soybean.yml",
-                "-sowing", "sowing_dates/0_0_sowing-dates.csv.gz",
-                "-sowing_default", "90",
-                "-harvest", "",
-                "-harvest_default", "304",
-                "-start_year", "1980",
-                "-end_year", "2010",
-                "-weather", "../climate/0/0_0/%s_v3test.csv",
-                "-reference", "stu_eu_layer_ref.csv",
-                "-grid_to_ref", "stu_eu_layer_grid.csv",
-                "-output", "historical",
+                "-crop",
+                "soybean.yml",
+                "-sowing",
+                "sowing_dates/0_0_sowing-dates.csv.gz",
+                "-sowing_default",
+                "90",
+                "-harvest",
+                "",
+                "-harvest_default",
+                "304",
+                "-start_year",
+                "1980",
+                "-end_year",
+                "2010",
+                "-weather",
+                "../climate/0/0_0/%s_v3test.csv",
+                "-reference",
+                "stu_eu_layer_ref.csv",
+                "-grid_to_ref",
+                "stu_eu_layer_grid.csv",
+                "-output",
+                "historical",
             ]
-        }
+        },
+        {
+            "name": "Launch combine",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "combine/combine_maps.go",
+            "cwd": "${workspaceFolder}",
+            "args": [
+                "-config",
+                "./combine/config.yml",
+            ]
+        },
     ]
 }
