@@ -436,7 +436,7 @@ def createImgFromMeta(ascii_path, meta_path, out_path, png_dpi, projectionID, pd
                 maxValue = 56
 
     # Read in the ascii data array
-    ascii_data_array = np.loadtxt(ascii_path, dtype=np.float, skiprows=6)
+    ascii_data_array = np.loadtxt(ascii_path, dtype=float, skiprows=6)
 
     if ascii_data_array.ndim == 1:
         reshaped_to_2d = np.reshape(ascii_data_array, (ascii_rows, -1))
@@ -1068,7 +1068,7 @@ def createSubPlot(image, out_path, png_dpi, projectionID, pdf=None):
 def plotLayer(fig, ax, idxCol, numCols, asciiHeader, meta, subtitle, onlyOnce, projectionID, customLegend=None,
               fontsize=10, axlabelpad=None, axtickpad=None):
     # Read in the ascii data array
-    ascii_data_array = np.loadtxt(asciiHeader.ascii_path, dtype=np.float, skiprows=6)
+    ascii_data_array = np.loadtxt(asciiHeader.ascii_path, dtype=float, skiprows=6)
     colorM = None
     # set min color if given
     if len(meta.minColor) > 0 and not meta.cMap:
