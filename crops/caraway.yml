@@ -5,3 +5,4 @@ stages:
   tsum: 3005
   basetemp: 5.0
 frosttreashold: 3
+sowingdateadjustment: 0

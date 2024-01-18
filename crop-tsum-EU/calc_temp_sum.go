@@ -95,7 +95,7 @@ func main() {
 	numberRef := len(referenceToGridCode)
 
 	// read time range data from csv file
-	timeRanges := readTimeRangeData(*sowingDateFile, *harvestDateFile, *sowingDefaultDOY, *harvestDefaultDOY, numberRef, *startYear, *endYear)
+	timeRanges := readTimeRangeData(*sowingDateFile, *harvestDateFile, *sowingDefaultDOY, *harvestDefaultDOY, numberRef, *startYear, *endYear, crop.SowingDateAdjustment)
 
 	// calculation result array
 	calculationResult := make([]*CalculationResultRef, numberRef)
@@ -147,7 +147,8 @@ func generateCropFile(cropFileName string) error {
 				BaseTemp: 6,
 			},
 		},
-		FrostTreashold: 5, // temperature below which cold damage occurs
+		FrostTreashold:       5, // temperature below which cold damage occurs
+		SowingDateAdjustment: 2,
 	}
 
 	data, err := yaml.Marshal(&crop)
@@ -423,9 +424,10 @@ type TimeRange struct {
 type Crop struct {
 	Name string // crop name
 
-	TsumMaturity   float64 // TSum required to reach maturity
-	Stages         []Stage
-	FrostTreashold float64 // temperature below which frost occurs
+	TsumMaturity         float64 // TSum required to reach maturity
+	Stages               []Stage
+	FrostTreashold       float64 // temperature below which frost occurs
+	SowingDateAdjustment int     // number of days to add or substract to sowing date
 }
 
 type Stage struct {
@@ -438,9 +440,11 @@ type Stage struct {
 func readCropData(filename string) (crop Crop, err error) {
 
 	crop = Crop{
-		Name:         "",
-		TsumMaturity: 0,
-		Stages:       nil,
+		Name:                 "",
+		TsumMaturity:         0,
+		Stages:               nil,
+		FrostTreashold:       0,
+		SowingDateAdjustment: 0,
 	}
 	// read crop data from yml file
 	data, err := os.ReadFile(filename)
@@ -456,11 +460,15 @@ func readCropData(filename string) (crop Crop, err error) {
 }
 
 // read time range data from csv file
-func readTimeRangeData(sowingDateFile, harvestDateFile string, sowingDateDefault, harvestDefault, size, startYear, endYear int) (timeRanges []*TimeRange) {
+func readTimeRangeData(sowingDateFile, harvestDateFile string, sowingDateDefault, harvestDefault, size, startYear, endYear, sowingDateAdjustment int) (timeRanges []*TimeRange) {
 
 	numberYears := endYear - startYear + 1
 	// create time range data
 	timeRanges = make([]*TimeRange, numberYears)
+	// verify sowing date adjustment is in range -30 to +30
+	if sowingDateAdjustment < -30 || sowingDateAdjustment > 30 {
+		log.Fatal("sowing date adjustment must be in range -30 to +30")
+	}
 
 	// set default time range
 	for i := 0; i < numberYears; i++ {
@@ -469,7 +477,7 @@ func readTimeRangeData(sowingDateFile, harvestDateFile string, sowingDateDefault
 			EndDOY:   make([]int, size),
 		}
 		for j := 0; j < size; j++ {
-			timeRanges[i].StartDOY[j] = sowingDateDefault
+			timeRanges[i].StartDOY[j] = sowingDateDefault + sowingDateAdjustment
 			timeRanges[i].EndDOY[j] = harvestDefault
 		}
 	}
@@ -477,18 +485,18 @@ func readTimeRangeData(sowingDateFile, harvestDateFile string, sowingDateDefault
 	// read time range data from csv file
 	if sowingDateFile != "" {
 		// read sowing date data from csv file
-		readDOY(sowingDateFile, startYear, endYear, timeRanges, true)
+		readDOY(sowingDateFile, startYear, endYear, timeRanges, true, sowingDateAdjustment)
 	}
 	if harvestDateFile != "" {
 		// read harvest date data from csv file
-		readDOY(harvestDateFile, startYear, endYear, timeRanges, false)
+		readDOY(harvestDateFile, startYear, endYear, timeRanges, false, 0)
 	}
 
 	return timeRanges
 }
 
 // read DOY from csv file
-func readDOY(filename string, startYear, endYear int, timeRanges []*TimeRange, isSow bool) error {
+func readDOY(filename string, startYear, endYear int, timeRanges []*TimeRange, isSow bool, sowingDateAdjustment int) error {
 
 	// open csv file
 	var reader io.Reader
@@ -554,7 +562,7 @@ func readDOY(filename string, startYear, endYear int, timeRanges []*TimeRange, i
 		yearIndex := year - startYear
 
 		if isSow {
-			timeRanges[yearIndex].StartDOY[refIndex] = doy
+			timeRanges[yearIndex].StartDOY[refIndex] = doy + sowingDateAdjustment
 		} else {
 			timeRanges[yearIndex].EndDOY[refIndex] = doy
 		}

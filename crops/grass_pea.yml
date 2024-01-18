@@ -5,3 +5,4 @@ stages:
   tsum: 1900
   basetemp: 5.0
 frosttreashold: 3
+sowingdateadjustment: 0

@@ -26,7 +26,8 @@ func Test_generateCropFile(t *testing.T) {
 				BaseTemp: 6,
 			},
 		},
-		FrostTreashold: 5, // temperature below which cold damage occurs
+		FrostTreashold:       5, // temperature below which cold damage occurs
+		SowingDateAdjustment: 2,
 	}
 
 	tests := []struct {
@@ -55,6 +56,9 @@ func Test_generateCropFile(t *testing.T) {
 			}
 			if crop.FrostTreashold != cropTempl.FrostTreashold {
 				t.Errorf("crop.FrostTreashold = %v, want %v", crop.FrostTreashold, cropTempl.FrostTreashold)
+			}
+			if crop.SowingDateAdjustment != cropTempl.SowingDateAdjustment {
+				t.Errorf("crop.SowingDateAdjustment = %v, want %v", crop.SowingDateAdjustment, cropTempl.SowingDateAdjustment)
 			}
 			for i, stage := range crop.Stages {
 				if stage.Name != cropTempl.Stages[i].Name {

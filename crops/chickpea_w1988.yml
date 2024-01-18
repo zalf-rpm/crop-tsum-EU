@@ -11,3 +11,4 @@ stages:
   tsum: 940
   basetemp: 7
 frosttreashold: 3
+sowingdateadjustment: 0

@@ -10,5 +10,5 @@ stages:
 - name: maturity
   tsum: 1058
   basetemp: 6
-frosttreashold: 3
-sowingdateadjustment: 0
+frosttreashold: 5
+sowingdateadjustment: 2
