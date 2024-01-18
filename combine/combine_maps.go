@@ -21,6 +21,8 @@ import (
 func main() {
 	writeConf := flag.Bool("write-config", false, "write config file")
 	confPath := flag.String("config", "config.yml", "path to config file")
+	crop := flag.String("crop", "chickpea", "crop name")
+	cropPath := flag.String("crop-path", "crop", "crop path")
 
 	flag.Parse()
 
@@ -41,9 +43,9 @@ func main() {
 	// read ascii grids
 	for _, config := range configs {
 		// read ascii grids
-		asciiGrids45 := readAsciiGrids(config.AsciiGrids45)
-		asciiGrids85 := readAsciiGrids(config.AsciiGrids85)
-		asciiGridHistorical := readAsciiGrids([]string{config.AsciiGridHistorical})
+		asciiGrids45 := readAsciiGrids(config.AsciiGrids45, *cropPath)
+		asciiGrids85 := readAsciiGrids(config.AsciiGrids85, *cropPath)
+		asciiGridHistorical := readAsciiGrids([]string{config.AsciiGridHistorical}, *cropPath)
 
 		// combine ascii grids
 		combinedGrid45 := combineAsciiGrids(asciiGrids45, config.CombineMode, config.Threshold)
@@ -53,14 +55,14 @@ func main() {
 		combinedGridMeta := combineHistoricalFutureMeta(asciiGridHistorical[0].Meta, combinedGrid45.Meta, combinedGrid85.Meta)
 
 		// write combined grid
-		writeAsciiGrid(combinedGrid45, config.OutPath, config.OutputGridTempl, "45")
-		writeAsciiGrid(combinedGrid85, config.OutPath, config.OutputGridTempl, "85")
-		writeAsciiGrid(asciiGridHistorical[0], config.OutPath, config.OutputGridTempl, "historical")
+		writeAsciiGrid(combinedGrid45, config.OutPath, config.OutputGridTempl, "45", *crop)
+		writeAsciiGrid(combinedGrid85, config.OutPath, config.OutputGridTempl, "85", *crop)
+		writeAsciiGrid(asciiGridHistorical[0], config.OutPath, config.OutputGridTempl, "historical", *crop)
 
 		// write metadata
-		writeMeta(combinedGridMeta, config.OutPath, config.OutputGridTempl, "historical")
-		writeMeta(combinedGridMeta, config.OutPath, config.OutputGridTempl, "45")
-		writeMeta(combinedGridMeta, config.OutPath, config.OutputGridTempl, "85")
+		writeMeta(combinedGridMeta, config.OutPath, config.OutputGridTempl, "historical", *crop)
+		writeMeta(combinedGridMeta, config.OutPath, config.OutputGridTempl, "45", *crop)
+		writeMeta(combinedGridMeta, config.OutPath, config.OutputGridTempl, "85", *crop)
 	}
 }
 
@@ -89,11 +91,11 @@ type AsciiGridMeta struct {
 	Max float64
 }
 
-func readAsciiGrids(paths []string) []*AsciiGrid {
+func readAsciiGrids(paths []string, croppath string) []*AsciiGrid {
 	// read ascii grids
 	asciiGrids := make([]*AsciiGrid, len(paths))
 	for i, path := range paths {
-		asciiGrids[i] = readAsciiGrid(path)
+		asciiGrids[i] = readAsciiGrid(fmt.Sprintf(path, croppath))
 	}
 	return asciiGrids
 }
@@ -356,7 +358,6 @@ type Config struct {
 	// output path
 	OutPath         string
 	OutputGridTempl string
-	OutMetaTempl    string
 
 	CombineMode CombineMode
 	Threshold   float64
@@ -368,22 +369,20 @@ func writeConfig(confPath string) {
 	// default configs
 	config := map[string]Config{
 		"config1": {
-			AsciiGrids45:        []string{"path/to/ascii/grid1", "path/to/ascii/grid2"},
-			AsciiGrids85:        []string{"path/to/ascii/grid1", "path/to/ascii/grid2"},
-			AsciiGridHistorical: "path/to/ascii/grid_historical",
+			AsciiGrids45:        []string{"path/to/ascii/%s/grid1", "path/to/ascii/%s/grid2"},
+			AsciiGrids85:        []string{"path/to/ascii/%s/grid1", "path/to/ascii/%s/grid2"},
+			AsciiGridHistorical: "path/to/ascii/%s/grid_historical",
 			OutPath:             "path/to/output",
-			OutputGridTempl:     "config1_%s.asc.gz",
-			OutMetaTempl:        "config1_%s.asc.meta",
+			OutputGridTempl:     "config1_%s_%s.asc",
 			CombineMode:         CombineModeAvg,
 			Threshold:           -1,
 		},
 		"config2": {
-			AsciiGrids45:        []string{"path/to/ascii/grid1", "path/to/ascii/grid2"},
-			AsciiGrids85:        []string{"path/to/ascii/grid1", "path/to/ascii/grid2"},
-			AsciiGridHistorical: "path/to/ascii/grid_historical",
+			AsciiGrids45:        []string{"path/to/ascii/%s/grid1", "path/to/ascii/%s/grid2"},
+			AsciiGrids85:        []string{"path/to/ascii/%s/grid1", "path/to/ascii/%s/grid2"},
+			AsciiGridHistorical: "path/to/ascii/%s/grid_historical",
 			OutPath:             "path/to/output",
-			OutputGridTempl:     "config2_%s.asc.gz",
-			OutMetaTempl:        "config2_%s.asc.meta",
+			OutputGridTempl:     "config2_%s_%s.asc",
 			CombineMode:         CombineModeAvg,
 			Threshold:           -1,
 		},
@@ -425,9 +424,9 @@ func readConfig(confPath string) map[string]Config {
 }
 
 // write ascii grid
-func writeAsciiGrid(asciiGrid *AsciiGrid, outPath string, outTempl string, name string) {
+func writeAsciiGrid(asciiGrid *AsciiGrid, outPath, outTempl, name, crop string) {
 	// create output file
-	fout, err := createGridFile(filepath.Join(outPath, fmt.Sprintf(outTempl, name)), asciiGrid.Meta)
+	fout, err := createGridFile(filepath.Join(outPath, fmt.Sprintf(outTempl, crop, name)), asciiGrid.Meta)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -442,14 +441,14 @@ func writeAsciiGrid(asciiGrid *AsciiGrid, outPath string, outTempl string, name 
 }
 
 // write meta data
-func writeMeta(asciiGridMeta *AsciiGridMeta, outPath string, outTempl string, name string) {
+func writeMeta(asciiGridMeta *AsciiGridMeta, outPath, outTempl, name, crop string) {
 	// create output filename
-	outname := filepath.Join(outPath, fmt.Sprintf(outTempl, name))
+	outname := filepath.Join(outPath, fmt.Sprintf(outTempl, crop, name))
 
 	writeMetaFile(
 		outname,                   // path+name to grid file
 		name,                      // title
-		"",                        // labeltext
+		"year",                    // labeltext
 		"viridis",                 // colormap
 		"",                        // colorlisttype
 		nil,                       // colorlist []string
@@ -472,7 +471,7 @@ func writeMetaFile(gridFilePath, title, labeltext, colormap, colorlistType strin
 	}
 	defer file.Close()
 	file.WriteString(fmt.Sprintf("title: '%s'\n", title))
-	file.WriteString("yTitle: 0.88\n")
+	file.WriteString("yTitle: 0.95\n")
 	file.WriteString("xTitle: 0.05\n")
 	file.WriteString("removeEmptyColumns: True\n")
 	file.WriteString(fmt.Sprintf("labeltext: '%s'\n", labeltext))

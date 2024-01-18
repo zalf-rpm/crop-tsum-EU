@@ -58,6 +58,8 @@
             "args": [
                 "-config",
                 "./combine/config.yml",
+                "-crop-path" , "chickpea_w1988",
+                "-crop",    "chickpea",
             ]
         },
     ]

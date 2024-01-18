@@ -1,38 +1,36 @@
-TsumReached_chickpea:
+TsumReached:
   asciigrids45:
-  - crops/chickpea_w1988/2_GFDL-CM3_45/TsumReached_1980-2010.asc.gz
-  - crops/chickpea_w1988/2_GISS-E2-R_45/TsumReached_1980-2010.asc.gz
-  - crops/chickpea_w1988/2_HadGEM2-ES_45/TsumReached_1980-2010.asc.gz
-  - crops/chickpea_w1988/2_MIROC5_45/TsumReached_1980-2010.asc.gz
-  - crops/chickpea_w1988/2_MPI-ESM-MR_45/TsumReached_1980-2010.asc.gz
+  - crops/%s/2_GFDL-CM3_45/TsumReached_1980-2010.asc.gz
+  - crops/%s/2_GISS-E2-R_45/TsumReached_1980-2010.asc.gz
+  - crops/%s/2_HadGEM2-ES_45/TsumReached_1980-2010.asc.gz
+  - crops/%s/2_MIROC5_45/TsumReached_1980-2010.asc.gz
+  - crops/%s/2_MPI-ESM-MR_45/TsumReached_1980-2010.asc.gz
   asciigrids85:
-  - crops/chickpea_w1988/2_GFDL-CM3_85/TsumReached_1980-2010.asc.gz
-  - crops/chickpea_w1988/2_GISS-E2-R_85/TsumReached_1980-2010.asc.gz
-  - crops/chickpea_w1988/2_HadGEM2-ES_85/TsumReached_1980-2010.asc.gz
-  - crops/chickpea_w1988/2_MIROC5_85/TsumReached_1980-2010.asc.gz
-  - crops/chickpea_w1988/2_MPI-ESM-MR_85/TsumReached_1980-2010.asc.gz
-  asciigridhistorical: crops/chickpea_w1988/historical/TsumReached_1980-2010.asc.gz
+  - crops/%s/2_GFDL-CM3_85/TsumReached_1980-2010.asc.gz
+  - crops/%s/2_GISS-E2-R_85/TsumReached_1980-2010.asc.gz
+  - crops/%s/2_HadGEM2-ES_85/TsumReached_1980-2010.asc.gz
+  - crops/%s/2_MIROC5_85/TsumReached_1980-2010.asc.gz
+  - crops/%s/2_MPI-ESM-MR_85/TsumReached_1980-2010.asc.gz
+  asciigridhistorical: crops/%s/historical/TsumReached_1980-2010.asc.gz
   outpath: crops/combined
-  outputgridtempl: TsumReached_chickpea_%s.asc.gz
-  outmetatempl: TsumReached_chickpea_%s.asc.gz
+  outputgridtempl: TsumReached_%s_%s.asc
   combinemode: 0
   threshold: -1
-FrostOccurrence_chickpea:
+FrostOccurrence:
   asciigrids45:
-  - crops/chickpea_w1988/2_GFDL-CM3_45/FrostOccurrence_1980-2010.asc.gz
-  - crops/chickpea_w1988/2_GISS-E2-R_45/FrostOccurrence_1980-2010.asc.gz
-  - crops/chickpea_w1988/2_HadGEM2-ES_45/FrostOccurrence_1980-2010.asc.gz
-  - crops/chickpea_w1988/2_MIROC5_45/FrostOccurrence_1980-2010.asc.gz
-  - crops/chickpea_w1988/2_MPI-ESM-MR_45/FrostOccurrence_1980-2010.asc.gz
+  - crops/%s/2_GFDL-CM3_45/FrostOccurrence_1980-2010.asc.gz
+  - crops/%s/2_GISS-E2-R_45/FrostOccurrence_1980-2010.asc.gz
+  - crops/%s/2_HadGEM2-ES_45/FrostOccurrence_1980-2010.asc.gz
+  - crops/%s/2_MIROC5_45/FrostOccurrence_1980-2010.asc.gz
+  - crops/%s/2_MPI-ESM-MR_45/FrostOccurrence_1980-2010.asc.gz
   asciigrids85:
-  - crops/chickpea_w1988/2_GFDL-CM3_85/FrostOccurrence_1980-2010.asc.gz
-  - crops/chickpea_w1988/2_GISS-E2-R_85/FrostOccurrence_1980-2010.asc.gz
-  - crops/chickpea_w1988/2_HadGEM2-ES_85/FrostOccurrence_1980-2010.asc.gz
-  - crops/chickpea_w1988/2_MIROC5_85/FrostOccurrence_1980-2010.asc.gz
-  - crops/chickpea_w1988/2_MPI-ESM-MR_85/FrostOccurrence_1980-2010.asc.gz
-  asciigridhistorical: crops/chickpea_w1988/historical/FrostOccurrence_1980-2010.asc.gz
+  - crops/%s/2_GFDL-CM3_85/FrostOccurrence_1980-2010.asc.gz
+  - crops/%s/2_GISS-E2-R_85/FrostOccurrence_1980-2010.asc.gz
+  - crops/%s/2_HadGEM2-ES_85/FrostOccurrence_1980-2010.asc.gz
+  - crops/%s/2_MIROC5_85/FrostOccurrence_1980-2010.asc.gz
+  - crops/%s/2_MPI-ESM-MR_85/FrostOccurrence_1980-2010.asc.gz
+  asciigridhistorical: crops/%s/historical/FrostOccurrence_1980-2010.asc.gz
   outpath: crops/combined
-  outputgridtempl: FrostOccurrence_chickpea_%s.asc.gz
-  outmetatempl: FrostOccurrence_chickpea_%s.asc.gz
+  outputgridtempl: FrostOccurrence_%s_%s.asc
   combinemode: 0
   threshold: -1
