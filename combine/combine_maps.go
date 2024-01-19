@@ -45,24 +45,25 @@ func main() {
 		// read ascii grids
 		asciiGrids45 := readAsciiGrids(config.AsciiGrids45, *cropPath)
 		asciiGrids85 := readAsciiGrids(config.AsciiGrids85, *cropPath)
-		asciiGridHistorical := readAsciiGrids([]string{config.AsciiGridHistorical}, *cropPath)
+		asciiGridHistorical := readAsciiGrids(config.AsciiGridHistorical, *cropPath)
 
 		// combine ascii grids
-		combinedGrid45 := combineAsciiGrids(asciiGrids45, config.CombineMode, config.Threshold)
-		combinedGrid85 := combineAsciiGrids(asciiGrids85, config.CombineMode, config.Threshold)
+		combinedAsciiGridHistorical := combineAsciiGrids(asciiGridHistorical, config.CombineMode, config.Threshold, config.DefaultMin)
+		combinedGrid45 := combineAsciiGrids(asciiGrids45, config.CombineMode, config.Threshold, config.DefaultMin)
+		combinedGrid85 := combineAsciiGrids(asciiGrids85, config.CombineMode, config.Threshold, config.DefaultMin)
 
 		// combine historical and future grids meta data
-		combinedGridMeta := combineHistoricalFutureMeta(asciiGridHistorical[0].Meta, combinedGrid45.Meta, combinedGrid85.Meta)
+		combinedGridMeta := combineHistoricalFutureMeta(combinedAsciiGridHistorical.Meta, combinedGrid45.Meta, combinedGrid85.Meta)
 
 		// write combined grid
 		writeAsciiGrid(combinedGrid45, config.OutPath, config.OutputGridTempl, "45", *crop)
 		writeAsciiGrid(combinedGrid85, config.OutPath, config.OutputGridTempl, "85", *crop)
-		writeAsciiGrid(asciiGridHistorical[0], config.OutPath, config.OutputGridTempl, "historical", *crop)
+		writeAsciiGrid(combinedAsciiGridHistorical, config.OutPath, config.OutputGridTempl, "historical", *crop)
 
 		// write metadata
-		writeMeta(combinedGridMeta, config.OutPath, config.OutputGridTempl, "historical", *crop)
-		writeMeta(combinedGridMeta, config.OutPath, config.OutputGridTempl, "45", *crop)
-		writeMeta(combinedGridMeta, config.OutPath, config.OutputGridTempl, "85", *crop)
+		writeMeta(combinedGridMeta, config.OutPath, config.OutputGridTempl, "historical", *crop, "hist")
+		writeMeta(combinedGridMeta, config.OutPath, config.OutputGridTempl, "45", *crop, "4.5")
+		writeMeta(combinedGridMeta, config.OutPath, config.OutputGridTempl, "85", *crop, "8.5")
 	}
 }
 
@@ -252,12 +253,29 @@ func (as *AsciiGrid) max(newVal float64) {
 type CombineMode int
 
 const (
-	CombineModeAvg CombineMode = iota
-	CombineModeAvgThreshold
+	CMAvg CombineMode = iota
+	CMAvgThreshold
+	CMPairsWithThreshold // combine pairs with threshold, the even grid index is the base, the odd grid is the threshold grid
 )
 
 // combine ascii grids
-func combineAsciiGrids(asciiGrids []*AsciiGrid, combineMode CombineMode, threshold float64) *AsciiGrid {
+func combineAsciiGrids(asciiGrids []*AsciiGrid, mode CombineMode, threshold, defaultMin float64) *AsciiGrid {
+
+	combineMode := mode
+	if combineMode == CMPairsWithThreshold && len(asciiGrids)%2 != 0 {
+		log.Fatal("number of ascii grids must be even")
+	}
+	gridsToCombine := asciiGrids
+	if combineMode == CMPairsWithThreshold && len(asciiGrids) > 2 {
+		combindedPairs := make([]*AsciiGrid, 0, len(asciiGrids)/2)
+		// combine pairs
+		for i := 0; i < len(asciiGrids); i += 2 {
+			combinded2Grids := combineAsciiGrids([]*AsciiGrid{asciiGrids[i], asciiGrids[i+1]}, combineMode, threshold, defaultMin)
+			combindedPairs = append(combindedPairs, combinded2Grids)
+		}
+		gridsToCombine = combindedPairs
+		combineMode = CMAvg
+	}
 
 	// create ascii grid for combined grid
 	combinedGrid := &AsciiGrid{
@@ -280,22 +298,33 @@ func combineAsciiGrids(asciiGrids []*AsciiGrid, combineMode CombineMode, thresho
 	}
 
 	// combine grids
-	for i := range asciiGrids {
-		for j := range asciiGrids[i].Data {
-			for k := range asciiGrids[i].Data[j] {
+	for i := range gridsToCombine {
+		for j := range gridsToCombine[i].Data {
+			for k := range gridsToCombine[i].Data[j] {
 				// check if value is no data value
-				if asciiGrids[i].Data[j][k] == asciiGrids[i].Meta.NoDataValue || combinedGrid.Data[j][k] == combinedGrid.Meta.NoDataValue {
+				if gridsToCombine[i].Data[j][k] == gridsToCombine[i].Meta.NoDataValue || combinedGrid.Data[j][k] == combinedGrid.Meta.NoDataValue {
 					combinedGrid.Data[j][k] = combinedGrid.Meta.NoDataValue
 				} else {
 					// combine values
 					switch combineMode {
-					case CombineModeAvg:
-						combinedGrid.Data[j][k] += asciiGrids[i].Data[j][k]
-					case CombineModeAvgThreshold:
-						combinedGrid.Data[j][k] += asciiGrids[i].Data[j][k]
+					case CMAvg:
+						combinedGrid.Data[j][k] += gridsToCombine[i].Data[j][k]
+					case CMAvgThreshold:
+						combinedGrid.Data[j][k] += gridsToCombine[i].Data[j][k]
+					case CMPairsWithThreshold:
+						thresholdGridValue := gridsToCombine[i+1].Data[j][k]
+						if thresholdGridValue < threshold {
+							combinedGrid.Data[j][k] = gridsToCombine[i].Data[j][k]
+						} else {
+							combinedGrid.Data[j][k] = defaultMin
+						}
 					}
 				}
 			}
+		}
+		if CMPairsWithThreshold == combineMode {
+			// we can only combine pairs, so we can break here
+			break
 		}
 	}
 	for j := range combinedGrid.Data {
@@ -306,13 +335,13 @@ func combineAsciiGrids(asciiGrids []*AsciiGrid, combineMode CombineMode, thresho
 			}
 			// combine values
 			switch combineMode {
-			case CombineModeAvg:
-				combinedGrid.Data[j][k] /= float64(len(asciiGrids))
+			case CMAvg:
+				combinedGrid.Data[j][k] /= float64(len(gridsToCombine))
 				// set min and max
 				combinedGrid.min(combinedGrid.Data[j][k])
 				combinedGrid.max(combinedGrid.Data[j][k])
-			case CombineModeAvgThreshold:
-				combinedGrid.Data[j][k] /= float64(len(asciiGrids))
+			case CMAvgThreshold:
+				combinedGrid.Data[j][k] /= float64(len(gridsToCombine))
 				// check if value is above threshold
 				if combinedGrid.Data[j][k] < threshold {
 					combinedGrid.Data[j][k] = 0
@@ -353,7 +382,7 @@ type Config struct {
 	// paths to ascii grids for 8.5
 	AsciiGrids85 []string
 	// path to historical ascii grid
-	AsciiGridHistorical string
+	AsciiGridHistorical []string
 
 	// output path
 	OutPath         string
@@ -361,6 +390,7 @@ type Config struct {
 
 	CombineMode CombineMode
 	Threshold   float64
+	DefaultMin  float64
 }
 
 // write default config file
@@ -371,20 +401,22 @@ func writeConfig(confPath string) {
 		"config1": {
 			AsciiGrids45:        []string{"path/to/ascii/%s/grid1", "path/to/ascii/%s/grid2"},
 			AsciiGrids85:        []string{"path/to/ascii/%s/grid1", "path/to/ascii/%s/grid2"},
-			AsciiGridHistorical: "path/to/ascii/%s/grid_historical",
+			AsciiGridHistorical: []string{"path/to/ascii/%s/grid_historical"},
 			OutPath:             "path/to/output",
 			OutputGridTempl:     "config1_%s_%s.asc",
-			CombineMode:         CombineModeAvg,
+			CombineMode:         CMAvg,
 			Threshold:           -1,
+			DefaultMin:          0,
 		},
 		"config2": {
 			AsciiGrids45:        []string{"path/to/ascii/%s/grid1", "path/to/ascii/%s/grid2"},
 			AsciiGrids85:        []string{"path/to/ascii/%s/grid1", "path/to/ascii/%s/grid2"},
-			AsciiGridHistorical: "path/to/ascii/%s/grid_historical",
+			AsciiGridHistorical: []string{"path/to/ascii/%s/grid_historical"},
 			OutPath:             "path/to/output",
 			OutputGridTempl:     "config2_%s_%s.asc",
-			CombineMode:         CombineModeAvg,
+			CombineMode:         CMAvg,
 			Threshold:           -1,
+			DefaultMin:          0,
 		},
 	}
 
@@ -441,13 +473,13 @@ func writeAsciiGrid(asciiGrid *AsciiGrid, outPath, outTempl, name, crop string) 
 }
 
 // write meta data
-func writeMeta(asciiGridMeta *AsciiGridMeta, outPath, outTempl, name, crop string) {
+func writeMeta(asciiGridMeta *AsciiGridMeta, outPath, outTempl, name, crop, title string) {
 	// create output filename
 	outname := filepath.Join(outPath, fmt.Sprintf(outTempl, crop, name))
 
 	writeMetaFile(
 		outname,                   // path+name to grid file
-		name,                      // title
+		title,                     // title
 		"year",                    // labeltext
 		"viridis",                 // colormap
 		"",                        // colorlisttype
@@ -471,8 +503,8 @@ func writeMetaFile(gridFilePath, title, labeltext, colormap, colorlistType strin
 	}
 	defer file.Close()
 	file.WriteString(fmt.Sprintf("title: '%s'\n", title))
-	file.WriteString("yTitle: 0.95\n")
-	file.WriteString("xTitle: 0.05\n")
+	file.WriteString("yTitle: 1.00\n")
+	file.WriteString("xTitle: 0.00\n")
 	file.WriteString("removeEmptyColumns: True\n")
 	file.WriteString(fmt.Sprintf("labeltext: '%s'\n", labeltext))
 	if colormap != "" {
