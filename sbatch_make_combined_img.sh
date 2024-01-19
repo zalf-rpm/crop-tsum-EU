@@ -11,7 +11,7 @@ CROPS="buckwheat caraway chickpea_w1988 durum grass_pea l_albus l_angustifolius 
 
 # for each crop and crop path
 for CROP in $CROPS; do
-    ./combine/combine -config ./combine/config.yml -crop-path crops/${CROP} -crop ${CROP} &
+    ./combine/combine -config ./combine/config.yml -crop-path ${CROP} -crop ${CROP} &
 done
 
 wait
