@@ -1,5 +1,5 @@
 - image: 
-    name: TsumReached_chickpea
+    name: TsumReached_chickpea_w1988
     sizeX: 10
     sizeY: 4
     adjBottom: 0.05
@@ -11,12 +11,12 @@
     rows:
         - row:
             - sharedColorBar : True
-            - file: TsumReached_chickpea_historical.asc.gz
-            - file: TsumReached_chickpea_45.asc.gz
-            - file: TsumReached_chickpea_85.asc.gz
+            - file: TsumReached_chickpea_w1988_historical.asc.gz
+            - file: TsumReached_chickpea_w1988_45.asc.gz
+            - file: TsumReached_chickpea_w1988_85.asc.gz
             
 - image: 
-    name: FrostOccurrence_chickpea
+    name: FrostOccurrence_chickpea_w1988
     sizeX: 10
     sizeY: 4
     adjBottom: 0.05
@@ -28,11 +28,11 @@
     rows:
         - row:
             - sharedColorBar : True
-            - file: FrostOccurrence_chickpea_historical.asc.gz
-            - file: FrostOccurrence_chickpea_45.asc.gz
-            - file: FrostOccurrence_chickpea_85.asc.gz
+            - file: FrostOccurrence_chickpea_w1988_historical.asc.gz
+            - file: FrostOccurrence_chickpea_w1988_45.asc.gz
+            - file: FrostOccurrence_chickpea_w1988_85.asc.gz
 - image:
-    name: TsumReachedNoFrost_chickpea
+    name: TsumReachedNoFrost_chickpea_w1988
     sizeX: 10
     sizeY: 4
     adjBottom: 0.05
@@ -44,6 +44,214 @@
     rows:
         - row:
             - sharedColorBar : True
-            - file: TsumReachedNoFrost_chickpea_historical.asc.gz
-            - file: TsumReachedNoFrost_chickpea_45.asc.gz
-            - file: TsumReachedNoFrost_chickpea_85.asc.gz
+            - file: TsumReachedNoFrost_chickpea_w1988_historical.asc.gz
+            - file: TsumReachedNoFrost_chickpea_w1988_45.asc.gz
+            - file: TsumReachedNoFrost_chickpea_w1988_85.asc.gz
+- image:
+    name: TsumReachedNoFrost_durum
+    sizeX: 10
+    sizeY: 4
+    adjBottom: 0.05
+    adjTop: 0.99
+    adRight: 0.80
+    adLeft: 0.06
+    adhspace: 0.12
+    adwspace: 0.01
+    rows:
+        - row:
+            - sharedColorBar : True
+            - file: TsumReachedNoFrost_durum_historical.asc.gz
+            - file: TsumReachedNoFrost_durum_45.asc.gz
+            - file: TsumReachedNoFrost_durum_85.asc.gz
+- image:
+    name: TsumReachedNoFrost_buckwheat
+    sizeX: 10
+    sizeY: 4
+    adjBottom: 0.05
+    adjTop: 0.99
+    adRight: 0.80
+    adLeft: 0.06
+    adhspace: 0.12
+    adwspace: 0.01
+    rows:
+        - row:
+            - sharedColorBar : True
+            - file: TsumReachedNoFrost_buckwheat_historical.asc.gz
+            - file: TsumReachedNoFrost_buckwheat_45.asc.gz
+            - file: TsumReachedNoFrost_buckwheat_85.asc.gz
+- image:
+    name: TsumReachedNoFrost_caraway
+    sizeX: 10
+    sizeY: 4
+    adjBottom: 0.05
+    adjTop: 0.99
+    adRight: 0.80
+    adLeft: 0.06
+    adhspace: 0.12
+    adwspace: 0.01
+    rows:
+        - row:
+            - sharedColorBar : True
+            - file: TsumReachedNoFrost_caraway_historical.asc.gz
+            - file: TsumReachedNoFrost_caraway_45.asc.gz
+            - file: TsumReachedNoFrost_caraway_85.asc.gz
+- image:
+    name: TsumReachedNoFrost_grass_pea
+    sizeX: 10
+    sizeY: 4
+    adjBottom: 0.05
+    adjTop: 0.99
+    adRight: 0.80
+    adLeft: 0.06
+    adhspace: 0.12
+    adwspace: 0.01
+    rows:
+        - row:
+            - sharedColorBar : True
+            - file: TsumReachedNoFrost_grass_pea_historical.asc.gz
+            - file: TsumReachedNoFrost_grass_pea_45.asc.gz
+            - file: TsumReachedNoFrost_grass_pea_85.asc.gz
+ - image:
+    name: TsumReachedNoFrost_l_albus
+    sizeX: 10
+    sizeY: 4
+    adjBottom: 0.05
+    adjTop: 0.99
+    adRight: 0.80
+    adLeft: 0.06
+    adhspace: 0.12
+    adwspace: 0.01
+    rows:
+        - row:
+            - sharedColorBar : True
+            - file: TsumReachedNoFrost_l_albus_historical.asc.gz
+            - file: TsumReachedNoFrost_l_albus_45.asc.gz
+            - file: TsumReachedNoFrost_l_albus_85.asc.gz
+- image:
+    name: TsumReachedNoFrost_l_angustifolius
+    sizeX: 10
+    sizeY: 4
+    adjBottom: 0.05
+    adjTop: 0.99
+    adRight: 0.80
+    adLeft: 0.06
+    adhspace: 0.12
+    adwspace: 0.01
+    rows:
+        - row:
+            - sharedColorBar : True
+            - file: TsumReachedNoFrost_l_angustifolius_historical.asc.gz
+            - file: TsumReachedNoFrost_l_angustifolius_45.asc.gz
+            - file: TsumReachedNoFrost_l_angustifolius_85.asc.gz           
+- image:
+    name: TsumReachedNoFrost_lentil
+    sizeX: 10
+    sizeY: 4
+    adjBottom: 0.05
+    adjTop: 0.99
+    adRight: 0.80
+    adLeft: 0.06
+    adhspace: 0.12
+    adwspace: 0.01
+    rows:
+        - row:
+            - sharedColorBar : True
+            - file: TsumReachedNoFrost_lentil_historical.asc.gz
+            - file: TsumReachedNoFrost_lentil_45.asc.gz
+            - file: TsumReachedNoFrost_lentil_85.asc.gz
+- image:
+    name: TsumReachedNoFrost_millet
+    sizeX: 10
+    sizeY: 4
+    adjBottom: 0.05
+    adjTop: 0.99
+    adRight: 0.80
+    adLeft: 0.06
+    adhspace: 0.12
+    adwspace: 0.01
+    rows:
+        - row:
+            - sharedColorBar : True
+            - file: TsumReachedNoFrost_millet_historical.asc.gz
+            - file: TsumReachedNoFrost_millet_45.asc.gz
+            - file: TsumReachedNoFrost_millet_85.asc.gz
+- image:
+    name: TsumReachedNoFrost_sesame
+    sizeX: 10
+    sizeY: 4
+    adjBottom: 0.05
+    adjTop: 0.99
+    adRight: 0.80
+    adLeft: 0.06
+    adhspace: 0.12
+    adwspace: 0.01
+    rows:
+        - row:
+            - sharedColorBar : True
+            - file: TsumReachedNoFrost_sesame_historical.asc.gz
+            - file: TsumReachedNoFrost_sesame_45.asc.gz
+            - file: TsumReachedNoFrost_sesame_85.asc.gz
+- image:
+    name: TsumReachedNoFrost_sorghum
+    sizeX: 10
+    sizeY: 4
+    adjBottom: 0.05
+    adjTop: 0.99
+    adRight: 0.80
+    adLeft: 0.06
+    adhspace: 0.12
+    adwspace: 0.01
+    rows:
+        - row:
+            - sharedColorBar : True
+            - file: TsumReachedNoFrost_sorghum_historical.asc.gz
+            - file: TsumReachedNoFrost_sorghum_45.asc.gz
+            - file: TsumReachedNoFrost_sorghum_85.asc.gz
+- image:
+    name: TsumReachedNoFrost_soybean
+    sizeX: 10
+    sizeY: 4
+    adjBottom: 0.05
+    adjTop: 0.99
+    adRight: 0.80
+    adLeft: 0.06
+    adhspace: 0.12
+    adwspace: 0.01
+    rows:
+        - row:
+            - sharedColorBar : True
+            - file: TsumReachedNoFrost_soybean_historical.asc.gz
+            - file: TsumReachedNoFrost_soybean_45.asc.gz
+            - file: TsumReachedNoFrost_soybean_85.asc.gz
+- image:
+    name: TsumReachedNoFrost_tomato
+    sizeX: 10
+    sizeY: 4
+    adjBottom: 0.05
+    adjTop: 0.99
+    adRight: 0.80
+    adLeft: 0.06
+    adhspace: 0.12
+    adwspace: 0.01
+    rows:
+        - row:
+            - sharedColorBar : True
+            - file: TsumReachedNoFrost_tomato_historical.asc.gz
+            - file: TsumReachedNoFrost_tomato_45.asc.gz
+            - file: TsumReachedNoFrost_tomato_85.asc.gz
+- image:
+    name: TsumReachedNoFrost_upland_rice
+    sizeX: 10
+    sizeY: 4
+    adjBottom: 0.05
+    adjTop: 0.99
+    adRight: 0.80
+    adLeft: 0.06
+    adhspace: 0.12
+    adwspace: 0.01
+    rows:
+        - row:
+            - sharedColorBar : True
+            - file: TsumReachedNoFrost_upland_rice_historical.asc.gz
+            - file: TsumReachedNoFrost_upland_rice_45.asc.gz
+            - file: TsumReachedNoFrost_upland_rice_85.asc.gz
