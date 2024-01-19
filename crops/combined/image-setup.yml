@@ -111,7 +111,7 @@
             - file: TsumReachedNoFrost_grass_pea_historical.asc.gz
             - file: TsumReachedNoFrost_grass_pea_45.asc.gz
             - file: TsumReachedNoFrost_grass_pea_85.asc.gz
- - image:
+- image:
     name: TsumReachedNoFrost_l_albus
     sizeX: 10
     sizeY: 4
