@@ -34,6 +34,6 @@ historical/
 2_MIROC5_85/
 2_MPI-ESM-MR_45/
 2_MPI-ESM-MR_85/
-crops/combined/TsumReached_*
-crops/combined/FrostOccurrence_*
+crops/combined/TsumReached*
+crops/combined/FrostOccurrence*
 img/combined
