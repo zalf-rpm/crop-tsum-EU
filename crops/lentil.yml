@@ -1,8 +1,8 @@
 name: lentil
-tsummaturity: 1073
+tsummaturity: 995
 stages:
 - name: overall
-  tsum: 1073
-  basetemp: 6.5
+  tsum: 995
+  basetemp: 7.12
 frosttreashold: 3
 sowingdateadjustment: 0
