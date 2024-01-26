@@ -3,6 +3,6 @@ tsummaturity: 995
 stages:
 - name: overall
   tsum: 995
-  basetemp: 7.12
+  basetemp: 7.1
 frosttreashold: 3
 sowingdateadjustment: 0
