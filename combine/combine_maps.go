@@ -61,9 +61,9 @@ func main() {
 		writeAsciiGrid(combinedAsciiGridHistorical, config.OutPath, config.OutputGridTempl, "historical", *crop)
 
 		// write metadata
-		writeMeta(combinedGridMeta, config.OutPath, config.OutputGridTempl, "historical", *crop, "hist")
-		writeMeta(combinedGridMeta, config.OutPath, config.OutputGridTempl, "45", *crop, "4.5")
-		writeMeta(combinedGridMeta, config.OutPath, config.OutputGridTempl, "85", *crop, "8.5")
+		writeMeta(combinedGridMeta, config.OutPath, config.OutputGridTempl, "historical", *crop, "(a)")
+		writeMeta(combinedGridMeta, config.OutPath, config.OutputGridTempl, "45", *crop, "(b)")
+		writeMeta(combinedGridMeta, config.OutPath, config.OutputGridTempl, "85", *crop, "(c)")
 	}
 }
 
@@ -541,6 +541,18 @@ func writeMetaFile(gridFilePath, title, labeltext, colormap, colorlistType strin
 	if len(minColor) > 0 {
 		file.WriteString(fmt.Sprintf("minColor: %s\n", minColor))
 	}
+
+	file.WriteString("yLabel: 'Latitude'\n")
+	file.WriteString("YaxisMappingFile: 'stacked_y_lat_buckets.csv'\n")
+	file.WriteString("YaxisMappingRefColumn: Bucket\n")
+	file.WriteString("YaxisMappingTarColumn: Latitude\n")
+	file.WriteString("YaxisMappingFormat: '{:2.0f}°'\n")
+	file.WriteString("yTicklist: \n")
+	file.WriteString("- 8\n")
+	file.WriteString("- 21\n")
+	file.WriteString("- 35\n")
+	file.WriteString("- 49\n")
+
 }
 
 func createGridFile(name string, header *AsciiGridMeta) (*Fout, error) {
