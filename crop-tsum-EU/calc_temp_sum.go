@@ -61,7 +61,7 @@ func main() {
 	sowingDefaultDOY := flag.Int("sowing_default", 150, "default sowing date (DOY)")
 	harvestDateFile := flag.String("harvest", "", "harvest dates file name")
 	harvestDefaultDOY := flag.Int("harvest_default", 300, "default harvest date (DOY)")
-	startYear := flag.Int("start_year", 1980, "start year")
+	startYear := flag.Int("start_year", 1981, "start year")
 	endYear := flag.Int("end_year", 2010, "end year")
 	pathToWeather := flag.String("weather", "weather", "path to weather files")
 	referenceFile := flag.String("reference", "stu_eu_layer_ref.csv", "reference file climate sowing date mapping")

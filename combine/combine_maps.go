@@ -503,8 +503,8 @@ func writeMetaFile(gridFilePath, title, labeltext, colormap, colorlistType strin
 	}
 	defer file.Close()
 	file.WriteString(fmt.Sprintf("title: '%s'\n", title))
-	file.WriteString("yTitle: 1.00\n")
-	file.WriteString("xTitle: 0.00\n")
+	file.WriteString("yTitle: 0.88\n")
+	file.WriteString("xTitle: 0.05\n")
 	file.WriteString("removeEmptyColumns: True\n")
 	file.WriteString(fmt.Sprintf("labeltext: '%s'\n", labeltext))
 	if colormap != "" {
@@ -543,15 +543,15 @@ func writeMetaFile(gridFilePath, title, labeltext, colormap, colorlistType strin
 	}
 
 	file.WriteString("yLabel: 'Latitude'\n")
-	file.WriteString("YaxisMappingFile: 'stacked_y_lat_buckets.csv'\n")
+	file.WriteString("YaxisMappingFile: 'map_y_lat_ticks.csv'\n")
 	file.WriteString("YaxisMappingRefColumn: Bucket\n")
 	file.WriteString("YaxisMappingTarColumn: Latitude\n")
 	file.WriteString("YaxisMappingFormat: '{:2.0f}°'\n")
 	file.WriteString("yTicklist: \n")
-	file.WriteString("- 8\n")
-	file.WriteString("- 21\n")
-	file.WriteString("- 35\n")
-	file.WriteString("- 49\n")
+	file.WriteString(" - 57\n")
+	file.WriteString(" - 1207\n")
+	file.WriteString(" - 2267\n")
+	file.WriteString(" - 3359\n")
 
 }
 
