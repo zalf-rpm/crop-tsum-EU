@@ -4,5 +4,5 @@ stages:
 - name: overall
   tsum: 1485
   basetemp: 12.8
-frosttreashold: 3
+frosttreashold: 2
 sowingdateadjustment: 0
