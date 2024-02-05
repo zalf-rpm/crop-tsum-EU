@@ -7,7 +7,7 @@
 #SBATCH --cpus-per-task=80
 
 #list of crops
-CROPS="buckwheat caraway chickpea chickpea_w1988 durum grass_pea l_albus l_angustifolius lentil millet sesame sorghum soybean tomato upland_rice"
+CROPS="buckwheat chickpea durum grass_pea l_albus l_angustifolius lentil millet sesame sorghum soybean tomato upland_rice"
 
 # for each crop and crop path
 for CROP in $CROPS; do
