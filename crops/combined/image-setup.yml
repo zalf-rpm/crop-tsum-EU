@@ -30,38 +30,38 @@
             - file: TsumReachedNoFrost_chickpea_historical.asc.gz
             - file: TsumReachedNoFrost_chickpea_45.asc.gz
             - file: TsumReachedNoFrost_chickpea_85.asc.gz
-- image: 
-    name: TsumReached_chickpea_w1988
-    sizeX: 10
-    sizeY: 4
-    adjBottom: 0.05
-    adjTop: 0.99
-    adRight: 0.80
-    adLeft: 0.06
-    adhspace: 0.12
-    adwspace: 0.01
-    rows:
-        - row:
-            - sharedColorBar : True
-            - file: TsumReached_chickpea_w1988_historical.asc.gz
-            - file: TsumReached_chickpea_w1988_45.asc.gz
-            - file: TsumReached_chickpea_w1988_85.asc.gz
-- image:
-    name: TsumReachedNoFrost_chickpea_w1988
-    sizeX: 10
-    sizeY: 4
-    adjBottom: 0.05
-    adjTop: 0.99
-    adRight: 0.80
-    adLeft: 0.06
-    adhspace: 0.12
-    adwspace: 0.01
-    rows:
-        - row:
-            - sharedColorBar : True
-            - file: TsumReachedNoFrost_chickpea_w1988_historical.asc.gz
-            - file: TsumReachedNoFrost_chickpea_w1988_45.asc.gz
-            - file: TsumReachedNoFrost_chickpea_w1988_85.asc.gz
+# - image: 
+#     name: TsumReached_chickpea_w1988
+#     sizeX: 10
+#     sizeY: 4
+#     adjBottom: 0.05
+#     adjTop: 0.99
+#     adRight: 0.80
+#     adLeft: 0.06
+#     adhspace: 0.12
+#     adwspace: 0.01
+#     rows:
+#         - row:
+#             - sharedColorBar : True
+#             - file: TsumReached_chickpea_w1988_historical.asc.gz
+#             - file: TsumReached_chickpea_w1988_45.asc.gz
+#             - file: TsumReached_chickpea_w1988_85.asc.gz
+# - image:
+#     name: TsumReachedNoFrost_chickpea_w1988
+#     sizeX: 10
+#     sizeY: 4
+#     adjBottom: 0.05
+#     adjTop: 0.99
+#     adRight: 0.80
+#     adLeft: 0.06
+#     adhspace: 0.12
+#     adwspace: 0.01
+#     rows:
+#         - row:
+#             - sharedColorBar : True
+#             - file: TsumReachedNoFrost_chickpea_w1988_historical.asc.gz
+#             - file: TsumReachedNoFrost_chickpea_w1988_45.asc.gz
+#             - file: TsumReachedNoFrost_chickpea_w1988_85.asc.gz
 - image: 
     name: TsumReached_durum
     sizeX: 10
@@ -126,38 +126,38 @@
             - file: TsumReachedNoFrost_buckwheat_historical.asc.gz
             - file: TsumReachedNoFrost_buckwheat_45.asc.gz
             - file: TsumReachedNoFrost_buckwheat_85.asc.gz
-- image: 
-    name: TsumReached_caraway
-    sizeX: 10
-    sizeY: 4
-    adjBottom: 0.05
-    adjTop: 0.99
-    adRight: 0.80
-    adLeft: 0.06
-    adhspace: 0.12
-    adwspace: 0.01
-    rows:
-        - row:
-            - sharedColorBar : True
-            - file: TsumReached_caraway_historical.asc.gz
-            - file: TsumReached_caraway_45.asc.gz
-            - file: TsumReached_caraway_85.asc.gz
-- image:
-    name: TsumReachedNoFrost_caraway
-    sizeX: 10
-    sizeY: 4
-    adjBottom: 0.05
-    adjTop: 0.99
-    adRight: 0.80
-    adLeft: 0.06
-    adhspace: 0.12
-    adwspace: 0.01
-    rows:
-        - row:
-            - sharedColorBar : True
-            - file: TsumReachedNoFrost_caraway_historical.asc.gz
-            - file: TsumReachedNoFrost_caraway_45.asc.gz
-            - file: TsumReachedNoFrost_caraway_85.asc.gz
+# - image: 
+#     name: TsumReached_caraway
+#     sizeX: 10
+#     sizeY: 4
+#     adjBottom: 0.05
+#     adjTop: 0.99
+#     adRight: 0.80
+#     adLeft: 0.06
+#     adhspace: 0.12
+#     adwspace: 0.01
+#     rows:
+#         - row:
+#             - sharedColorBar : True
+#             - file: TsumReached_caraway_historical.asc.gz
+#             - file: TsumReached_caraway_45.asc.gz
+#             - file: TsumReached_caraway_85.asc.gz
+# - image:
+#     name: TsumReachedNoFrost_caraway
+#     sizeX: 10
+#     sizeY: 4
+#     adjBottom: 0.05
+#     adjTop: 0.99
+#     adRight: 0.80
+#     adLeft: 0.06
+#     adhspace: 0.12
+#     adwspace: 0.01
+#     rows:
+#         - row:
+#             - sharedColorBar : True
+#             - file: TsumReachedNoFrost_caraway_historical.asc.gz
+#             - file: TsumReachedNoFrost_caraway_45.asc.gz
+#             - file: TsumReachedNoFrost_caraway_85.asc.gz
 - image: 
     name: TsumReached_grass_pea
     sizeX: 10
