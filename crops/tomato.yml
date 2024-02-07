@@ -2,7 +2,7 @@ name: tomato
 tsummaturity: 1100
 stages:
 - name: overall
-  tsum: 1004
+  tsum: 1100
   basetemp: 10
 frosttreashold: 3
 sowingdateadjustment: 0
