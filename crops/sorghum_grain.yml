@@ -1,0 +1,8 @@
+name: 'sorghum grain'
+tsummaturity: 1350
+stages:
+- name: overall
+  tsum: 1350
+  basetemp: 8
+frosttreashold: 2
+sowingdateadjustment: 0

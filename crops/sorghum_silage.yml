@@ -1,0 +1,8 @@
+name: sorghum silage
+tsummaturity: 1150
+stages:
+- name: overall
+  tsum: 1150
+  basetemp: 8
+frosttreashold: 2
+sowingdateadjustment: 0

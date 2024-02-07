@@ -383,6 +383,70 @@
             - file: TsumReachedNoFrost_sorghum_45.asc.gz
             - file: TsumReachedNoFrost_sorghum_85.asc.gz
 - image: 
+    name: TsumReached_sorghum_grain
+    sizeX: 10
+    sizeY: 4
+    adjBottom: 0.05
+    adjTop: 0.99
+    adRight: 0.80
+    adLeft: 0.06
+    adhspace: 0.12
+    adwspace: 0.01
+    rows:
+        - row:
+            - sharedColorBar : True
+            - file: TsumReached_sorghum_grain_historical.asc.gz
+            - file: TsumReached_sorghum_grain_45.asc.gz
+            - file: TsumReached_sorghum_grain_85.asc.gz
+- image:
+    name: TsumReachedNoFrost_sorghum_grain
+    sizeX: 10
+    sizeY: 4
+    adjBottom: 0.05
+    adjTop: 0.99
+    adRight: 0.80
+    adLeft: 0.06
+    adhspace: 0.12
+    adwspace: 0.01
+    rows:
+        - row:
+            - sharedColorBar : True
+            - file: TsumReachedNoFrost_sorghum_grain_historical.asc.gz
+            - file: TsumReachedNoFrost_sorghum_grain_45.asc.gz
+            - file: TsumReachedNoFrost_sorghum_grain_85.asc.gz
+- image: 
+    name: TsumReached_sorghum_silage
+    sizeX: 10
+    sizeY: 4
+    adjBottom: 0.05
+    adjTop: 0.99
+    adRight: 0.80
+    adLeft: 0.06
+    adhspace: 0.12
+    adwspace: 0.01
+    rows:
+        - row:
+            - sharedColorBar : True
+            - file: TsumReached_sorghum_silage_historical.asc.gz
+            - file: TsumReached_sorghum_silage_45.asc.gz
+            - file: TsumReached_sorghum_silage_85.asc.gz
+- image:
+    name: TsumReachedNoFrost_sorghum_silage
+    sizeX: 10
+    sizeY: 4
+    adjBottom: 0.05
+    adjTop: 0.99
+    adRight: 0.80
+    adLeft: 0.06
+    adhspace: 0.12
+    adwspace: 0.01
+    rows:
+        - row:
+            - sharedColorBar : True
+            - file: TsumReachedNoFrost_sorghum_silage_historical.asc.gz
+            - file: TsumReachedNoFrost_sorghum_silage_45.asc.gz
+            - file: TsumReachedNoFrost_sorghum_silage_85.asc.gz
+- image: 
     name: TsumReached_soybean
     sizeX: 10
     sizeY: 4
